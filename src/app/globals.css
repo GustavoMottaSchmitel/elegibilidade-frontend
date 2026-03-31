@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  ::selection { background: rgba(189,147,249,0.25); color: #f8f8f2; }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: #13141f; }
+  ::-webkit-scrollbar-thumb { background: #2a2b3d; border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: #6272a4; }
+
+  input[type="text"], input[type="search"] { outline: none; }
+
+  body { background: #13141f; color: #f8f8f2; }
+}
+
+@layer components {
+  /* Card principal — substitui .panel do projeto original */
+  .panel {
+    background: rgba(26, 27, 38, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+  }
+
+  /* Card interno menor */
+  .panel-sm {
+    background: rgba(13, 14, 23, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+
+  /* Item do menu lateral */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+    color: #6272a4;
+    text-decoration: none;
+  }
+  .nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #f8f8f2;
+  }
+  .nav-item.active {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8f8f2;
+  }
+}
+
+@layer utilities {
+  .animate-delay-100 { animation-delay: 0.1s; animation-fill-mode: both; }
+  .animate-delay-150 { animation-delay: 0.15s; animation-fill-mode: both; }
+  .animate-delay-200 { animation-delay: 0.2s; animation-fill-mode: both; }
+  .animate-delay-300 { animation-delay: 0.3s; animation-fill-mode: both; }
+  .animate-delay-400 { animation-delay: 0.4s; animation-fill-mode: both; }
+  .opacity-0-init    { opacity: 0; }
+}
