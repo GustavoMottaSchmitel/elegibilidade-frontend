@@ -43,6 +43,7 @@ export interface ContratoResumoDto {
   dataFim?: string
   valorMensal?: number
   observacao?: string
+  referencia?: string
   descricao?: string
 }
 

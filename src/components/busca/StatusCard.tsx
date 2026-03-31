@@ -147,8 +147,8 @@ export function StatusCard({ data }: Props) {
           </div>
 
           {/* Referência (sistema) */}
-          {contrato.descricao && (
-            <ReferenceBlock value={contrato.descricao} />
+          {contrato.referencia && (
+            <ReferenceBlock value={contrato.referencia} />
           )}
 
           {/* Observações */}

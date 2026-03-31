@@ -78,7 +78,7 @@ export const importacaoApi = {
   enviar: async (arquivo: File): Promise<ImportacaoCsv> => {
     const form = new FormData()
     form.append('arquivo', arquivo)
-    const { data } = await api.post('/importacoes/csv', form, {
+    const { data } = await api.post('/importacoes/upload', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     return data
