@@ -381,22 +381,34 @@ body {
 
 .animate-fade-up {
   opacity: 0;
-  animation: var(--animation-fade-up);
+  animation-name: fadeUp;
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: forwards;
 }
 
 .animate-fade-in {
   opacity: 0;
-  animation: var(--animation-fade-in);
+  animation-name: fadeIn;
+  animation-duration: 0.4s;
+  animation-timing-function: ease;
+  animation-fill-mode: forwards;
 }
 
 .animate-slide-left {
   opacity: 0;
-  animation: var(--animation-slide-left);
+  animation-name: slideInLeft;
+  animation-duration: 0.4s;
+  animation-timing-function: ease;
+  animation-fill-mode: forwards;
 }
 
 .animate-count-up {
   opacity: 0;
-  animation: var(--animation-count-up);
+  animation-name: countUp;
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: forwards;
 }
 
 .animate-delay-100 { animation-delay: 100ms; }
