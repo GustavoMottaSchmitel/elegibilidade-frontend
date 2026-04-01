@@ -19,10 +19,7 @@ export default function BuscaPage() {
 
   const { data: resultados, isLoading, isFetching } = useQuery({
     queryKey: ['busca-clientes', queryParam, docParam],
-    queryFn: () => {
-      if (docParam) return clienteApi.buscar(docParam)
-      return clienteApi.buscar(queryParam)
-    },
+    queryFn: () => clienteApi.buscarPorTermo(docParam || queryParam),
     enabled: !!queryParam || !!docParam,
   })
 
@@ -100,7 +97,7 @@ export default function BuscaPage() {
                     <div className="w-10 h-10 rounded-xl bg-[var(--dash-accent-soft)] border border-[var(--dash-accent-soft)] flex items-center justify-center text-[var(--dash-accent-text)]">
                       <Building2 size={20} />
                     </div>
-                    <StatusAtendimentoBadge status={cliente.statusAtendimento || 'REGULAR'} />
+                    <StatusAtendimentoBadge status={cliente.statusAtendimento || 'PODE_ATENDER'} />
                   </div>
                   
                   <h3 className="font-bold text-[var(--dash-text-primary)] text-lg mb-1 leading-tight group-hover:text-[var(--dash-accent-text)] transition-colors">

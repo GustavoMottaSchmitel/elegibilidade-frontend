@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { clienteApi } from '@/lib/api'
 import { formatCpfCnpj, formatMoeda, formatData, formatDataHora } from '@/lib/utils'
 import { StatusAtendimentoBadge, StatusContratoBadge, Skeleton } from '@/components/ui'
-import { ArrowLeft, Building2, Phone, Mail, MapPin, FileText, Wallet, Calendar, Clock, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Building2, Phone, Mail, MapPin, FileText, Wallet, Calendar, Clock, ChevronRight, AlertCircle } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function ClienteDetalhePage() {

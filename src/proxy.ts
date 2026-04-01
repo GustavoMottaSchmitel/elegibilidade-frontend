@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   let token = request.cookies.get('ata_token')?.value
   
   // Suporte a SSO via ?token= na URL (para domínios duckdns diferentes)

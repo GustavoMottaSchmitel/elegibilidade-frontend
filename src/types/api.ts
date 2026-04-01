@@ -97,6 +97,7 @@ export interface ClienteDetalheResponse {
   ativo: boolean
   criadoEm: string
   atualizadoEm: string
+  statusAtendimento?: StatusAtendimento
   contratos: ContratoDetalheDto[]
   financeiros: FinanceiroDetalheDto[]
 }

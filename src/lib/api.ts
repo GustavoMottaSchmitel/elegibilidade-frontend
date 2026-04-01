@@ -64,13 +64,6 @@ export const clienteApi = {
     return data
   },
 
-  /** @deprecated use consultarPorDocumento */
-  consultarPorCnpj: async (cnpj: string): Promise<StatusAtendimentoResponse> => {
-    const limpo = cnpj.replace(/\D/g, '')
-    const { data } = await api.get(`/clientes/documento/${limpo}/status-atendimento`)
-    return data
-  },
-
   consultarPorId: async (id: number): Promise<StatusAtendimentoResponse> => {
     const { data } = await api.get(`/clientes/${id}/status-atendimento`)
     return data
@@ -104,10 +97,10 @@ export const dashboardApi = {
 // ── Importação ────────────────────────────────────────────────────────────
 
 export const importacaoApi = {
-  enviar: async (arquivo: File): Promise<ImportacaoCsv> => {
+  importarCsv: async (arquivo: File): Promise<any> => {
     const form = new FormData()
     form.append('arquivo', arquivo)
-    const { data } = await api.post('/importacoes/upload', form, {
+    const { data } = await api.post('/clientes/importar', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     return data

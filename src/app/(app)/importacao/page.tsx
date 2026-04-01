@@ -1,7 +1,7 @@
 'use client'
 import { useState, useCallback } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { clienteApi } from '@/lib/api'
+import { importacaoApi } from '@/lib/api'
 import { useDropzone } from 'react-dropzone'
 import { UploadCloud, FileJson, CheckCircle2, AlertCircle, Loader2, RefreshCw, X } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -32,9 +32,9 @@ export default function ImportacaoPage() {
   })
 
   const mutation = useMutation({
-    mutationFn: (f: File) => clienteApi.importarCsv(f),
+    mutationFn: (f: File) => importacaoApi.importarCsv(f),
     onSuccess: (data) => {
-      setResults(data)
+      setResults(data as ImportResult)
       toast.success('Processamento concluído!')
     },
     onError: (error: any) => {
