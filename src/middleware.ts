@@ -2,12 +2,24 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('ata_token')?.value
+  let token = request.cookies.get('ata_token')?.value
+  
+  // Suporte a SSO via ?token= na URL (para domínios duckdns diferentes)
+  const urlToken = request.nextUrl.searchParams.get('token')
+  if (urlToken) {
+    const response = NextResponse.redirect(new URL(request.nextUrl.pathname, request.url))
+    response.cookies.set('ata_token', urlToken, {
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 dias
+    })
+    return response
+  }
 
   // Elegibilidade dashboard and app routes should be protected.
   if (!token) {
-    // Redirect to central login in production, or localhost:3000 locally
-    const isLocal = request.nextUrl.hostname === 'localhost' || request.nextUrl.hostname === '127.0.0.1'
+    const isLocal = process.env.NODE_ENV === 'development'
     const loginUrl = isLocal 
       ? 'http://localhost:3000/login' 
       : 'https://central-atasistemas.duckdns.org/login'
