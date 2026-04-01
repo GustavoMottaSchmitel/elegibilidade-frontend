@@ -1,25 +1,24 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Moon, Sun, LogOut } from 'lucide-react'
+import { Menu, Moon, Sun, LogOut, Activity } from 'lucide-react'
+import { Sidebar } from '@/components/layout/Sidebar'
+import clsx from 'clsx'
 
-export function LayoutWrapper({ children, nome }: { children: React.ReactNode, nome?: string }) {
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+export function LayoutWrapper({ children }: { children: React.ReactNode }) {
+  const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [theme, setTheme] = useState<'dark'>('dark')
 
+  // Load collapse state from storage
   useEffect(() => {
-    const saved = localStorage.getItem('ata_theme') as 'light' | 'dark' | null
-    if (saved) {
-      setTheme(saved)
-      document.documentElement.setAttribute('data-theme', saved)
-    } else {
-      document.documentElement.setAttribute('data-theme', 'dark')
-    }
+    const saved = localStorage.getItem('ata_sidebar')
+    if (saved === 'collapsed') setCollapsed(true)
   }, [])
 
-  const toggleTheme = () => {
-    const next = theme === 'light' ? 'dark' : 'light'
-    setTheme(next)
-    localStorage.setItem('ata_theme', next)
-    document.documentElement.setAttribute('data-theme', next)
+  const handleToggle = () => {
+    const next = !collapsed
+    setCollapsed(next)
+    localStorage.setItem('ata_sidebar', next ? 'collapsed' : 'expanded')
   }
 
   const handleLogout = () => {
@@ -28,63 +27,74 @@ export function LayoutWrapper({ children, nome }: { children: React.ReactNode, n
   }
 
   return (
-    <div className="min-h-screen flex flex-col animate-fade-in transition-all duration-500">
-      {/* Premium Header */}
-      <header className="premium-glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <img 
-            src={theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'} 
-            alt="ATA Sistemas Logo" 
-            className="h-10 w-auto transition-all duration-300 transform hover:scale-105"
-            onError={(e) => {
-               // Fallback se o logo novo ainda não estiver no public
-               (e.target as HTMLImageElement).style.display = 'none'
-            }}
-          />
-          <div className="flex flex-col">
-            <h1 className="text-premium-title text-xl">Elegibilidade</h1>
-            <span className="text-premium-muted">Sistema de Atendimento</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-6">
-          <button 
-            onClick={toggleTheme}
-            className="p-2.5 rounded-xl border border-[var(--dash-border)] hover:border-[var(--dash-accent)] transition-all bg-[var(--dash-surface)]"
-          >
-            {theme === 'light' ? <Moon size={20} className="text-blue-500" /> : <Sun size={20} className="text-amber-400" />}
-          </button>
-
-          <div className="h-8 w-px bg-[var(--dash-border)]" />
-
-          <div className="flex items-center gap-3">
-             <div className="flex flex-col items-end">
-                <span className="text-xs font-semibold text-[var(--dash-text-primary)]">{nome || 'Usuário'}</span>
-                <span className="text-[10px] text-[var(--dash-text-muted)] uppercase">Atendimento</span>
-             </div>
-             <button 
-               onClick={handleLogout}
-               className="p-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20"
-             >
-               <LogOut size={20} />
-             </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen flex transition-all duration-300">
+      {/* Sidebar */}
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={handleToggle}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-7xl mx-auto py-10 px-6">
-        {children}
-      </main>
-
-      <footer className="py-8 px-6 border-t border-[var(--dash-border)]">
-        <div className="max-w-7xl mx-auto flex justify-between items-center text-premium-muted">
-          <span>© 2026 ATA Sistemas · Todos os direitos reservados.</span>
-          <div className="flex gap-4">
-            <span className="opacity-60">v1.2.0-stable</span>
+      <div
+        className={clsx(
+          'flex-1 flex flex-col min-h-screen transition-all duration-300',
+          collapsed ? 'lg:ml-[72px]' : 'lg:ml-[260px]'
+        )}
+      >
+        {/* Topbar */}
+        <header className="glass sticky top-0 z-30 h-14 flex items-center justify-between px-4 lg:px-6 shrink-0">
+          {/* Left: Mobile menu + Breadcrumb */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-base-400 hover:text-white hover:bg-base-800 transition-all"
+            >
+              <Menu size={20} />
+            </button>
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-label">Sistema de Atendimento</span>
+            </div>
           </div>
-        </div>
-      </footer>
+
+          {/* Right: Status + Actions */}
+          <div className="flex items-center gap-3">
+            {/* API Status */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-base-800 border border-base-700">
+              <span className="w-2 h-2 rounded-full bg-ok dot-pulse" />
+              <span className="text-label text-[9px]">API Online</span>
+            </div>
+
+            <div className="h-5 w-px bg-base-700 hidden sm:block" />
+
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-base-400 hover:text-danger hover:bg-danger-dim transition-all text-xs"
+              title="Sair do Sistema"
+            >
+              <LogOut size={16} />
+              <span className="hidden sm:inline font-medium">Sair</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 px-4 lg:px-8 py-6 lg:py-8">
+          <div className="max-w-6xl mx-auto">
+            {children}
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="px-4 lg:px-8 py-4 border-t border-base-800">
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] text-base-500 font-mono">
+            <span>© 2026 ATA Sistemas · Todos os direitos reservados</span>
+            <span className="opacity-60">Elegibilidade v2.0</span>
+          </div>
+        </footer>
+      </div>
     </div>
   )
 }
