@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { DM_Mono, DM_Sans, Fraunces } from 'next/font/google'
 import { Providers } from './providers'
+import { LayoutWrapper } from '@/components/layout-wrapper'
 import './globals.css'
 
 export const dynamic = 'force-dynamic'
@@ -31,8 +32,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${dmMono.variable} ${dmSans.variable} ${fraunces.variable}`}>
-      <body className="bg-ink-950 text-ink-100 font-sans antialiased">
-        <Providers>{children}</Providers>
+      <body className="antialiased">
+        <Providers>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </Providers>
       </body>
     </html>
   )
