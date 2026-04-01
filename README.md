@@ -9,7 +9,7 @@ Interface moderna para o Sistema Inteligente de Elegibilidade de Atendimento.
 ## Pré-requisitos
 
 - Node.js 18+
-- Backend rodando em `http://authcentral-atasistemas.duckdns.org`
+- Backend rodando em `https://api-elegibilidade.duckdns.org`
 
 ---
 

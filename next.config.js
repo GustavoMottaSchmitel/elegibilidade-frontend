@@ -4,7 +4,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://authcentral-atasistemas.duckdns.org/api/:path*',
+        destination: 'https://api-elegibilidade.duckdns.org/api/:path*',
       },
     ]
   },

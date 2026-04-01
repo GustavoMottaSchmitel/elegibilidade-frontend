@@ -3,6 +3,9 @@ import { DM_Mono, DM_Sans, Fraunces } from 'next/font/google'
 import { Providers } from './providers'
 import './globals.css'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 const dmMono = DM_Mono({
   weight: ['300', '400', '500'],
   subsets: ['latin'],
