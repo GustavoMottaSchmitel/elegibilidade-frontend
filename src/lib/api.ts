@@ -13,6 +13,30 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+// Adiciona o token de autenticação em todas as requisições
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const name = 'ata_token='
+    const decodedCookie = decodeURIComponent(document.cookie)
+    const ca = decodedCookie.split(';')
+    let token = ''
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i]
+        while (c.charAt(0) === ' ') {
+            c = c.substring(1)
+        }
+        if (c.indexOf(name) === 0) {
+            token = c.substring(name.length, c.length)
+        }
+    }
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  }
+  return config
+})
+
 api.interceptors.response.use(
   (r) => r,
   (err) => {
