@@ -2,9 +2,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
 import { clienteApi } from '@/lib/api'
-import { formatCpfCnpj, formatMoeda, formatData, formatDataHora, statusContratoLabel, statusContratoColor } from '@/lib/utils'
-import { StatusAtendimentoBadge, StatusContratoBadge, Skeleton, Divider } from '@/components/ui'
-import { ArrowLeft, Building2, Phone, Mail, MapPin, FileText, Wallet, RefreshCw } from 'lucide-react'
+import { formatCpfCnpj, formatMoeda, formatData, formatDataHora } from '@/lib/utils'
+import { StatusAtendimentoBadge, StatusContratoBadge, Skeleton } from '@/components/ui'
+import { ArrowLeft, Building2, Phone, Mail, MapPin, FileText, Wallet, Calendar, Clock, ChevronRight } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function ClienteDetalhePage() {
@@ -27,175 +27,241 @@ export default function ClienteDetalhePage() {
   const isLoading = loadDetalhe || loadStatus
 
   return (
-    <div className="max-w-3xl mx-auto">
-      {/* Back */}
+    <div className="max-w-4xl mx-auto pb-20">
+      {/* Back Button */}
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 font-mono text-[11px] text-ink-500 hover:text-amber transition-colors mb-6 animate-fade-up"
+        className="flex items-center gap-2 font-mono text-[11px] text-[var(--dash-text-muted)] hover:text-[var(--dash-accent-text)] transition-all mb-8 bg-[var(--dash-accent-soft)] px-3 py-1.5 rounded-lg border border-[var(--dash-border)] group"
       >
-        <ArrowLeft size={13} /> voltar
+        <ArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" /> 
+        <span className="uppercase tracking-widest">voltar para lista</span>
       </button>
 
       {isLoading ? (
         <LoadingSkeleton />
       ) : detalhe ? (
-        <>
-          {/* Header do cliente */}
-          <div className="panel p-5 mb-4 animate-fade-up">
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <h1 className="font-serif text-xl text-ink-100 mb-0.5">{detalhe.razaoSocial}</h1>
-                {detalhe.nomeFantasia && (
-                  <p className="text-ink-500 text-sm font-sans">{detalhe.nomeFantasia}</p>
-                )}
-              </div>
-              {status && <StatusAtendimentoBadge status={status.statusAtendimento} />}
-            </div>
+        <div className="space-y-8 animate-fade-in">
+          {/* Header Profile */}
+          <div className="premium-card p-8 border-l-4 border-l-[var(--dash-accent)] shadow-2xl relative overflow-hidden">
+             {/* Decorative Background Icon */}
+             <Building2 size={120} className="absolute -right-6 -bottom-6 text-[var(--dash-accent)] opacity-[0.03] rotate-12" />
 
-            {status?.motivo && (
-              <p className="text-ink-500 text-xs font-sans mb-4 pl-0.5">{status.motivo}</p>
-            )}
+             <div className="relative z-10">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                  <div>
+                    <h1 className="text-3xl text-premium-title mb-2 tracking-tight">{detalhe.razaoSocial}</h1>
+                    <div className="flex items-center gap-3">
+                       <span className="font-mono text-xs px-2.5 py-1 rounded-md bg-[var(--dash-bg)] border border-[var(--dash-border)] text-[var(--dash-text-secondary)]">
+                          {formatCpfCnpj(detalhe.cnpj)}
+                       </span>
+                       {detalhe.nomeFantasia && (
+                         <span className="text-[var(--dash-text-muted)] text-[13px] font-sans italic border-l border-[var(--dash-border)] pl-3">
+                           {detalhe.nomeFantasia}
+                         </span>
+                       )}
+                    </div>
+                  </div>
+                  {status && <StatusAtendimentoBadge status={status.statusAtendimento} />}
+                </div>
 
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
-              <InfoRow icon={<FileText size={11} />}  label="CNPJ"     value={formatCpfCnpj(detalhe.cnpj)} mono />
-              {detalhe.email    && <InfoRow icon={<Mail size={11} />}     label="E-mail"   value={detalhe.email} />}
-              {detalhe.telefone && <InfoRow icon={<Phone size={11} />}    label="Telefone" value={detalhe.telefone} mono />}
-              {(detalhe.cidade || detalhe.estado) && (
-                <InfoRow icon={<MapPin size={11} />} label="Cidade"
-                  value={[detalhe.cidade, detalhe.estado].filter(Boolean).join(' · ')} />
-              )}
-            </div>
-
-            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-ink-800">
-              <p className="font-mono text-[10px] text-ink-700">
-                Cadastro: {formatDataHora(detalhe.criadoEm)}
-              </p>
-              <p className="font-mono text-[10px] text-ink-700">
-                Atualizado: {formatDataHora(detalhe.atualizadoEm)}
-              </p>
-            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t border-[var(--dash-border)]/50">
+                   <ContactBadge icon={<Mail size={14} />} label="E-mail de Contato" value={detalhe.email || '—'} />
+                   <ContactBadge icon={<Phone size={14} />} label="Telefone / WhatsApp" value={detalhe.telefone || '—'} mono />
+                   <ContactBadge icon={<MapPin size={14} />} label="Localização Principal" value={[detalhe.cidade, detalhe.estado].filter(Boolean).join(' · ') || '—'} />
+                </div>
+             </div>
           </div>
 
-          {/* Contratos */}
-          <div className="mb-4 animate-fade-up animate-delay-100">
-            <p className="font-mono text-[10px] text-ink-600 tracking-widest uppercase mb-2">
-              Contratos ({detalhe.contratos.length})
-            </p>
-            {detalhe.contratos.length === 0 ? (
-              <div className="panel px-4 py-6 text-center">
-                <p className="font-mono text-xs text-ink-700">Sem contratos cadastrados</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {detalhe.contratos.map((c) => (
-                  <div key={c.id} className="panel p-4">
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div>
-                        <p className="font-mono text-sm text-ink-100">{c.numeroContrato}</p>
-                        <p className="text-ink-500 text-xs mt-0.5 font-sans">{c.tipoContrato}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+             {/* Main Column: Contratos */}
+             <div className="lg:col-span-2 space-y-4">
+                <h3 className="flex items-center gap-2 text-premium-muted text-[10px] tracking-[0.2em] mb-4">
+                  <FileText size={14} className="text-[var(--dash-accent)]" /> Contratos Vigentes ({detalhe.contratos.length})
+                </h3>
+                
+                {detalhe.contratos.length === 0 ? (
+                  <div className="premium-card p-10 text-center opacity-60">
+                    <p className="text-sm font-mono text-[var(--dash-text-muted)] italic">Nenhum contrato ativo registrado.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {detalhe.contratos.map((c) => (
+                      <div key={c.id} className="premium-card group hover:border-[var(--dash-accent)] p-6 transition-all duration-500">
+                        <div className="flex items-start justify-between mb-6">
+                           <div className="flex gap-4">
+                              <div className="w-10 h-10 rounded-xl bg-[var(--dash-bg)] border border-[var(--dash-border)] flex items-center justify-center text-[var(--dash-accent-text)]">
+                                 <Wallet size={18} />
+                              </div>
+                              <div>
+                                <p className="font-mono text-[15px] text-[var(--dash-text-primary)] font-bold">{c.numeroContrato}</p>
+                                <p className="text-[11px] text-[var(--dash-text-muted)] uppercase tracking-wider">{c.tipoContrato}</p>
+                              </div>
+                           </div>
+                           <StatusContratoBadge status={c.statusContrato} />
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 py-4 border-y border-[var(--dash-border)]/30">
+                           <ContractStat label="Início" value={formatData(c.dataInicio)} icon={<Calendar size={12}/>} />
+                           <ContractStat label="Vencimento" value={formatData(c.dataFim)} icon={<Clock size={12}/>} isBold />
+                           <ContractStat label="Faturamento" value={formatMoeda(c.valorMensal)} icon={<FileText size={12}/>} />
+                        </div>
+
+                        {c.observacao && (
+                           <p className="mt-4 text-[12px] leading-relaxed text-[var(--dash-text-secondary)] italic pl-4 border-l-2 border-[var(--dash-border)]">
+                              "{c.observacao}"
+                           </p>
+                        )}
                       </div>
-                      <StatusContratoBadge status={c.statusContrato} />
-                    </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      <MiniField label="Início"  value={formatData(c.dataInicio)} />
-                      <MiniField label="Venc."   value={formatData(c.dataFim)} />
-                      <MiniField label="Mensal"  value={formatMoeda(c.valorMensal)} />
-                    </div>
-                    {c.observacao && (
-                      <p className="font-mono text-[10px] text-ink-600 mt-2.5 pt-2.5 border-t border-ink-800">
-                        {c.observacao}
-                      </p>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                )}
+             </div>
 
-          {/* Financeiro */}
-          {detalhe.financeiros.length > 0 && (
-            <div className="animate-fade-up animate-delay-200">
-              <p className="font-mono text-[10px] text-ink-600 tracking-widest uppercase mb-2">
-                Situação Financeira
-              </p>
-              <div className="space-y-2">
-                {detalhe.financeiros.map((f) => (
-                  <div key={f.id} className="panel p-4">
-                    {f.numeroContrato && (
-                      <p className="font-mono text-[10px] text-ink-600 mb-3">
-                        Contrato: {f.numeroContrato}
-                      </p>
-                    )}
-                    <div className="grid grid-cols-3 gap-3">
-                      <MiniField
-                        label="Débito"
-                        value={f.possuiDebito ? 'Sim' : 'Não'}
-                        danger={f.possuiDebito}
-                      />
-                      <MiniField
-                        label="Em Aberto"
-                        value={formatMoeda(f.valorEmAberto)}
-                        danger={f.valorEmAberto > 0}
-                      />
-                      <MiniField
-                        label="Dias Atraso"
-                        value={f.diasAtraso > 0 ? `${f.diasAtraso}d` : '—'}
-                        danger={f.diasAtraso > 0}
-                      />
-                    </div>
-                    {f.dataUltimoPagamento && (
-                      <p className="font-mono text-[10px] text-ink-600 mt-2.5 pt-2.5 border-t border-ink-800">
-                        Último pagamento: {formatData(f.dataUltimoPagamento)}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
+             {/* Sidebar: Financeiro & Metadata */}
+             <div className="space-y-8">
+                <section>
+                   <h3 className="flex items-center gap-2 text-premium-muted text-[10px] tracking-[0.2em] mb-4 uppercase">
+                     Saúde Financeira
+                   </h3>
+                   {detalhe.financeiros.length > 0 ? (
+                      <div className="space-y-3">
+                        {detalhe.financeiros.map((f) => (
+                          <div key={f.id} className={clsx(
+                            "premium-card p-5 border-l-2",
+                            f.possuiDebito ? "border-l-status-red" : "border-l-status-green"
+                          )}>
+                             <div className="flex justify-between items-center mb-4 pb-2 border-b border-[var(--dash-border)]/20">
+                                <span className="text-[10px] font-mono text-[var(--dash-text-muted)] uppercase tracking-tighter">Nº {f.numeroContrato || 'N/A'}</span>
+                                <span className={clsx(
+                                  "w-2 h-2 rounded-full",
+                                  f.possuiDebito ? "bg-status-red animate-pulse" : "bg-status-green"
+                                )} />
+                             </div>
+                             
+                             <div className="space-y-3">
+                                <FinanceRow label="Status" value={f.possuiDebito ? 'Inadimplente' : 'Regular'} highlight={f.possuiDebito} />
+                                <FinanceRow label="Total em Aberto" value={formatMoeda(f.valorEmAberto)} bold highlight={f.valorEmAberto > 0} />
+                                <FinanceRow label="Dias de Atraso" value={f.diasAtraso > 0 ? `${f.diasAtraso} dias` : 'Nenhum'} highlight={f.diasAtraso > 0} />
+                             </div>
+
+                             {f.dataUltimoPagamento && (
+                               <p className="mt-4 pt-3 border-t border-[var(--dash-border)]/20 text-[10px] text-right text-[var(--dash-text-muted)] italic font-mono lowercase">
+                                 Pagto: {formatData(f.dataUltimoPagamento)}
+                               </p>
+                             )}
+                          </div>
+                        ))}
+                      </div>
+                   ) : (
+                      <div className="premium-card p-10 text-center opacity-60">
+                        <p className="text-xs font-mono text-[var(--dash-text-muted)] italic">Nenhum dado financeiro.</p>
+                      </div>
+                   )}
+                </section>
+
+                <section className="premium-card bg-[var(--dash-bg)] border-none p-5">
+                   <h3 className="text-premium-muted text-[9px] mb-4 uppercase tracking-widest">Metadata do Registro</h3>
+                   <div className="space-y-3">
+                      <MetaRow label="Registro" value={formatDataHora(detalhe.criadoEm)} />
+                      <MetaRow label="Sincronia" value={formatDataHora(detalhe.atualizadoEm)} />
+                      <div className="pt-3 flex justify-end">
+                         <div className="inline-flex items-center gap-1.5 text-[9px] font-mono text-[var(--dash-accent-text)] bg-[var(--dash-surface)] p-2 rounded-lg border border-[var(--dash-border)]">
+                            ID INTERNO #{detalhe.id}
+                         </div>
+                      </div>
+                   </div>
+                </section>
+             </div>
+          </div>
+        </div>
       ) : (
-        <div className="panel px-5 py-8 text-center">
-          <p className="font-mono text-xs text-ink-700">Cliente não encontrado</p>
+        <div className="premium-card py-24 text-center">
+          <AlertCircle size={40} className="text-status-red mx-auto mb-4 opacity-40" />
+          <h2 className="text-premium-title text-xl mb-1">Cliente não encontrado</h2>
+          <p className="text-[var(--dash-text-muted)] text-sm mb-6">O registro solicitado pode ter sido removido ou não existe.</p>
+          <button onClick={() => router.push('/')} className="px-6 py-2.5 bg-[var(--dash-accent)] text-white font-bold rounded-xl hover:bg-[var(--dash-accent-text)] transition-all text-sm shadow-lg shadow-[var(--dash-accent-soft)]">
+            Voltar ao Dashboard
+          </button>
         </div>
       )}
     </div>
   )
 }
 
-function InfoRow({ icon, label, value, mono }: {
-  icon: React.ReactNode; label: string; value: string; mono?: boolean
-}) {
+function ContactBadge({ icon, label, value, mono }: { icon: React.ReactNode; label: string; value: string; mono?: boolean }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-ink-600">{icon}</span>
-      <span className="font-mono text-[10px] text-ink-600 w-14 shrink-0">{label}</span>
-      <span className={clsx('text-xs text-ink-300', mono ? 'font-mono' : 'font-sans')}>{value}</span>
+    <div className="space-y-1">
+      <p className="flex items-center gap-2 text-premium-muted text-[9px] mb-1">
+        <span className="text-[var(--dash-accent)]">{icon}</span> {label}
+      </p>
+      <p className={clsx(
+        "text-[13px] text-[var(--dash-text-primary)] font-medium break-all",
+        mono ? "font-mono" : "font-sans"
+      )}>
+        {value}
+      </p>
     </div>
   )
 }
 
-function MiniField({ label, value, danger }: { label: string; value: string; danger?: boolean }) {
+function ContractStat({ icon, label, value, isBold }: { icon: React.ReactNode; label: string; value: string; isBold?: boolean }) {
   return (
-    <div>
-      <p className="font-mono text-[10px] text-ink-600 uppercase tracking-wider mb-0.5">{label}</p>
-      <p className={clsx('font-mono text-sm', danger ? 'text-status-red' : 'text-ink-200')}>{value}</p>
+    <div className="space-y-1">
+      <span className="flex items-center gap-1.5 text-premium-muted text-[8px] uppercase tracking-tighter">
+        <span className="text-[var(--dash-text-muted)]">{icon}</span> {label}
+      </span>
+      <p className={clsx(
+        "text-[12px] text-[var(--dash-text-primary)] leading-none",
+        isBold ? "font-bold" : "font-medium"
+      )}>
+        {value}
+      </p>
+    </div>
+  )
+}
+
+function FinanceRow({ label, value, highlight, bold }: { label: string; value: string; highlight?: boolean; bold?: boolean }) {
+  return (
+    <div className="flex justify-between items-center text-xs">
+      <span className="text-[var(--dash-text-muted)] text-[11px] h-full flex items-center">{label}</span>
+      <span className={clsx(
+        "font-mono rounded-md px-2 py-0.5 border",
+        highlight ? "text-status-red bg-status-red-bg border-status-red/10" : "text-emerald-500 bg-emerald-500/10 border-emerald-500/10",
+        bold && "font-bold text-[14px]"
+      )}>
+        {value}
+      </span>
+    </div>
+  )
+}
+
+function MetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between items-center text-[10px]">
+      <span className="text-[var(--dash-text-muted)] font-mono">{label}</span>
+      <span className="text-[var(--dash-text-secondary)] font-mono">{value}</span>
     </div>
   )
 }
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4 animate-fade-in">
-      <div className="panel p-5 space-y-3">
-        <Skeleton className="h-6 w-64" />
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-4 w-56" />
+    <div className="space-y-8 animate-fade-in">
+      <div className="premium-card p-10 space-y-6">
+        <Skeleton className="h-10 w-2/3 bg-[var(--dash-bg)]" />
+        <div className="flex gap-4">
+           <Skeleton className="h-6 w-32 bg-[var(--dash-bg)] rounded-full" />
+           <Skeleton className="h-6 w-48 bg-[var(--dash-bg)] rounded-full" />
+        </div>
       </div>
-      <div className="panel p-4 space-y-3">
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-3/4" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-4">
+           <Skeleton className="h-32 w-full bg-[var(--dash-surface)] border border-[var(--dash-border)]" />
+           <Skeleton className="h-32 w-full bg-[var(--dash-surface)] border border-[var(--dash-border)]" />
+        </div>
+        <div className="space-y-4">
+           <Skeleton className="h-64 w-full bg-[var(--dash-surface)] border border-[var(--dash-border)]" />
+        </div>
       </div>
     </div>
   )

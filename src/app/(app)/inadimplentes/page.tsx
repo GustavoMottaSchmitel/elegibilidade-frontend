@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { clienteApi } from '@/lib/api'
 import { formatCpfCnpj, formatMoeda } from '@/lib/utils'
-import { AlertOctagon, UserX, ChevronLeft, ChevronRight, TrendingDown } from 'lucide-react'
+import { AlertCircle, UserX, ChevronLeft, ChevronRight, TrendingDown, ArrowUpRight, CalendarClock } from 'lucide-react'
 import { Skeleton } from '@/components/ui'
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -21,98 +21,98 @@ export default function InadimplentesPage() {
     <div className="max-w-5xl mx-auto pb-10">
       <div className="mb-8 animate-fade-up">
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,85,85,0.15)' }}>
-            <AlertOctagon size={17} className="text-[#ff5555]" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-status-yellow-bg border border-status-yellow/20 shadow-lg shadow-status-yellow/5">
+            <AlertCircle size={20} className="text-status-yellow" />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Clientes Inadimplentes</h1>
+          <h1 className="text-2xl text-premium-title tracking-tight">Clientes Inadimplentes</h1>
         </div>
-        <p className="text-[#6272a4] text-sm ml-12">Clientes com títulos em aberto e débito confirmado no sistema</p>
+        <p className="text-[var(--dash-text-secondary)] text-sm ml-14">Acompanhamento de clientes com parcelas em atraso (1 a 90 dias)</p>
       </div>
 
       <div className="animate-fade-up animate-delay-100">
         {isLoading ? (
-          <div className="panel divide-y divide-white/5">
-            {[...Array(6)].map((_, i) => (
+          <div className="premium-card divide-y divide-[var(--dash-border)]">
+             {[...Array(6)].map((_, i) => (
               <div key={i} className="px-6 py-4 flex items-center justify-between">
                 <div className="space-y-2">
-                  <Skeleton className="h-4 w-52 rounded bg-white/5" />
-                  <Skeleton className="h-3 w-32 rounded bg-white/5" />
+                  <Skeleton className="h-4 w-52 rounded bg-[var(--dash-bg)]" />
+                  <Skeleton className="h-3 w-32 rounded bg-[var(--dash-bg)]" />
                 </div>
-                <Skeleton className="h-5 w-28 rounded bg-white/5" />
+                <Skeleton className="h-6 w-28 rounded-full bg-[var(--dash-bg)]" />
               </div>
             ))}
           </div>
         ) : isError ? (
-          <div className="panel px-6 py-5">
-            <p className="text-[11px] font-semibold text-[#ff5555] uppercase tracking-widest mb-1">Erro</p>
-            <p className="text-sm text-[#6272a4]">Não foi possível carregar a lista de inadimplentes.</p>
+          <div className="premium-card bg-status-red-bg border-status-red/20 px-6 py-5">
+            <p className="text-premium-muted text-status-red mb-1">Erro de Conexão</p>
+            <p className="text-sm text-[var(--dash-text-secondary)]">Não foi possível carregar a lista de inadimplentes.</p>
           </div>
         ) : !data?.content.length ? (
-          <div className="panel px-8 py-16 text-center">
-            <UserX size={32} className="text-[#383a52] mx-auto mb-3" />
-            <p className="font-semibold text-white">Nenhum cliente inadimplente</p>
-            <p className="text-sm text-[#6272a4] mt-1">A base parece regularizada ou ainda não foi importada.</p>
+          <div className="premium-card px-8 py-20 text-center opacity-60">
+            <div className="w-16 h-16 rounded-full bg-[var(--dash-bg)] flex items-center justify-center mx-auto mb-4 border border-[var(--dash-border)]">
+              <UserX size={32} className="text-[var(--dash-text-muted)]" />
+            </div>
+            <p className="text-premium-title text-lg mb-1">Tudo em dia!</p>
+            <p className="text-sm text-[var(--dash-text-secondary)]">Não foram encontrados clientes com faturas em atraso.</p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              <MetricCard label="Total inadimplentes" value={String(data.totalElements)} icon={<TrendingDown size={16} className="text-[#ff5555]" />} color="#ff5555" />
-              <MetricCard label="Nesta página"         value={String(data.content.length)} icon={<AlertOctagon size={16} className="text-[#f1fa8c]" />} color="#f1fa8c" />
-              <MetricCard label="Páginas"              value={String(data.totalPages)} icon={<UserX size={16} className="text-[#6272a4]" />} color="#6272a4" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <MetricCard label="Total Inadimplentes" value={String(data.totalElements)} icon={<TrendingDown size={18} />} color="yellow" />
+              <MetricCard label="Registros Página"   value={String(data.content.length)} icon={<AlertCircle size={18} />} color="yellow" />
+              <MetricCard label="Total de Páginas"   value={String(data.totalPages)} icon={<CalendarClock size={18} />} color="blue" />
             </div>
 
-            <div className="panel overflow-hidden">
+            <div className="premium-card !p-0 overflow-hidden shadow-2xl">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
-                    <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                      {['Cliente', 'CPF / CNPJ', 'Financeiro', 'Ação'].map(h => (
-                        <th key={h} className="px-6 py-3.5 text-[10px] font-semibold text-[#6272a4] uppercase tracking-widest">{h}</th>
+                    <tr className="bg-[var(--dash-bg)] border-b border-[var(--dash-border)]">
+                      {['Cliente', 'Documento', 'Financeiro', 'Ação / Perfil'].map(h => (
+                        <th key={h} className="px-6 py-4 text-premium-muted font-bold">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
-                    {data.content.map((cliente, i) => {
+                  <tbody className="divide-y divide-[var(--dash-border)]">
+                    {data.content.map((cliente) => {
                       const fin = cliente.financeiros?.[0]
                       return (
-                        <tr key={cliente.id} className="transition-colors hover:bg-white/[0.02]"
-                          style={{ borderBottom: i < data.content.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                          <td className="px-6 py-4">
-                            <p className="font-medium text-white text-[14px]">{cliente.razaoSocial}</p>
-                            {cliente.nomeFantasia && <p className="text-[12px] text-[#6272a4] mt-0.5">{cliente.nomeFantasia}</p>}
+                        <tr key={cliente.id} className="transition-all hover:bg-[var(--dash-accent-soft)]">
+                          <td className="px-6 py-5">
+                            <p className="font-semibold text-[var(--dash-text-primary)] text-[15px]">{cliente.razaoSocial}</p>
+                            {cliente.nomeFantasia && <p className="text-[12px] text-[var(--dash-text-secondary)] mt-0.5">{cliente.nomeFantasia}</p>}
                           </td>
-                          <td className="px-6 py-4">
-                            <span className="font-mono text-[12px] text-[#bd93f9] px-2.5 py-1 rounded-md" style={{ background: 'rgba(189,147,249,0.1)' }}>
+                          <td className="px-6 py-5">
+                            <span className="font-mono text-[12px] text-[var(--dash-accent-text)] px-2.5 py-1.5 rounded-lg bg-[var(--dash-accent-soft)] border border-[var(--dash-accent-soft)]">
                               {formatCpfCnpj(cliente.cnpj)}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-5">
                             {fin ? (
-                              <div className="space-y-1">
+                              <div className="space-y-1.5">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-[11px] text-[#6272a4]">Aberto:</span>
-                                  <span className="text-[13px] font-mono font-semibold text-[#ff5555]">{formatMoeda(fin.valorEmAberto)}</span>
+                                  <span className="text-[11px] text-[var(--dash-text-muted)] uppercase tracking-tighter">Aberto:</span>
+                                  <span className="text-[13px] font-mono font-bold text-status-yellow">{formatMoeda(fin.valorEmAberto)}</span>
                                 </div>
                                 {fin.diasAtraso > 0 && (
                                   <div className="flex items-center gap-2">
-                                    <span className="text-[11px] text-[#6272a4]">Atraso:</span>
+                                    <span className="text-[11px] text-[var(--dash-text-muted)] uppercase tracking-tighter">Atraso:</span>
                                     <span className={clsx(
-                                      'text-[12px] font-mono font-medium px-2 py-0.5 rounded',
-                                      fin.diasAtraso > 90 ? 'text-[#ff5555] bg-[#ff5555]/10'
-                                      : fin.diasAtraso > 30 ? 'text-[#f1fa8c] bg-[#f1fa8c]/10'
-                                      : 'text-[#ffb86c] bg-[#ffb86c]/10'
+                                      'text-[11px] font-mono font-bold px-2 py-0.5 rounded-md border',
+                                      fin.diasAtraso > 30 ? 'text-status-yellow bg-status-yellow-bg border-status-yellow/20'
+                                      : 'text-amber-500 bg-amber-500/10 border-amber-500/20'
                                     )}>
-                                      {fin.diasAtraso}d
+                                      {fin.diasAtraso} dias
                                     </span>
                                   </div>
                                 )}
                               </div>
-                            ) : <span className="text-[#6272a4] text-[12px]">—</span>}
+                            ) : <span className="text-[var(--dash-text-muted)] text-[12px]">—</span>}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-5">
                             <Link href={`/busca?doc=${cliente.cnpj}`}
-                              className="text-[12px] font-medium text-[#bd93f9] hover:text-[#ff79c6] transition-colors">
-                              Ver detalhes →
+                              className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[var(--dash-accent-text)] hover:text-[var(--dash-text-primary)] transition-all group">
+                              Consultar Perfil <ArrowUpRight size={13} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                             </Link>
                           </td>
                         </tr>
@@ -123,14 +123,13 @@ export default function InadimplentesPage() {
               </div>
 
               {data.totalPages > 1 && (
-                <div className="px-6 py-4 flex items-center justify-between"
-                  style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
-                  <p className="text-[12px] text-[#6272a4] font-mono">
-                    {data.number * data.size + 1}–{Math.min((data.number + 1) * data.size, data.totalElements)} de {data.totalElements}
+                <div className="px-6 py-5 flex items-center justify-between bg-[var(--dash-bg)] border-t border-[var(--dash-border)]">
+                  <p className="text-[11px] text-[var(--dash-text-muted)] font-mono">
+                    Mostrando <span className="text-[var(--dash-text-primary)]">{data.number * data.size + 1}–{Math.min((data.number + 1) * data.size, data.totalElements)}</span> de <span className="text-[var(--dash-text-primary)]">{data.totalElements}</span> resultados
                   </p>
                   <div className="flex gap-2">
-                    <NavBtn onClick={() => setPage(p => Math.max(0, p - 1))} disabled={data.number === 0}><ChevronLeft size={15} /></NavBtn>
-                    <NavBtn onClick={() => setPage(p => Math.min(data.totalPages - 1, p + 1))} disabled={data.number >= data.totalPages - 1}><ChevronRight size={15} /></NavBtn>
+                    <NavBtn onClick={() => setPage(p => Math.max(0, p - 1))} disabled={data.number === 0}><ChevronLeft size={16} /></NavBtn>
+                    <NavBtn onClick={() => setPage(p => Math.min(data.totalPages - 1, p + 1))} disabled={data.number >= data.totalPages - 1}><ChevronRight size={16} /></NavBtn>
                   </div>
                 </div>
               )}
@@ -142,13 +141,21 @@ export default function InadimplentesPage() {
   )
 }
 
-function MetricCard({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) {
+function MetricCard({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: 'yellow' | 'blue' }) {
+  const isYellow = color === 'yellow'
   return (
-    <div className="panel px-5 py-4 flex items-center gap-4">
-      <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}18` }}>{icon}</div>
+    <div className="premium-card flex items-center gap-4 py-4 px-5">
+      <div className={clsx(
+        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border",
+        isYellow ? "bg-status-yellow-bg text-status-yellow border-status-yellow/10" : "bg-blue-500/10 text-blue-500 border-blue-500/10"
+      )}>
+        {icon}
+      </div>
       <div>
-        <p className="text-[10px] text-[#6272a4] uppercase tracking-widest">{label}</p>
-        <p className="text-2xl font-bold font-mono" style={{ color }}>{value}</p>
+        <p className="text-premium-muted text-[8px]">{label}</p>
+        <p className={clsx("text-2xl font-bold font-mono tracking-tight", isYellow ? "text-status-yellow" : "text-[var(--dash-text-primary)]")}>
+          {value}
+        </p>
       </div>
     </div>
   )
@@ -157,8 +164,8 @@ function MetricCard({ label, value, icon, color }: { label: string; value: strin
 function NavBtn({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) {
   return (
     <button onClick={onClick} disabled={disabled}
-      className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed text-[#6272a4] hover:text-white"
-      style={{ background: 'rgba(255,255,255,0.06)' }}>
+      className="w-9 h-9 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-[var(--dash-surface)] border border-[var(--dash-border)] text-[var(--dash-text-secondary)] hover:border-[var(--dash-accent)] hover:text-[var(--dash-accent-text)] shadow-sm"
+    >
       {children}
     </button>
   )

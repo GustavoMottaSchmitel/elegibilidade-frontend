@@ -1,123 +1,131 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { Search, X, Loader2 } from 'lucide-react'
 import { clienteApi } from '@/lib/api'
 import { formatCpfCnpj } from '@/lib/utils'
-import { StatusCard } from '@/components/busca/StatusCard'
-import { Skeleton } from '@/components/ui'
+import { Search, Building2, UserX, ArrowRight, Loader2, Filter } from 'lucide-react'
+import { Skeleton, StatusAtendimentoBadge } from '@/components/ui'
+import Link from 'next/link'
 import clsx from 'clsx'
 
 export default function BuscaPage() {
-  const [input, setInput] = useState('')
-  const [query, setQuery] = useState('')
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const queryParam = searchParams.get('q') || ''
+  const docParam = searchParams.get('doc') || ''
+  
+  const [searchTerm, setSearchTerm] = useState(queryParam || docParam)
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['elegibilidade', query],
-    queryFn:  () => clienteApi.consultarPorDocumento(query),
-    enabled:  query.length === 11 || query.length === 14,
-    retry: false,
+  const { data: resultados, isLoading, isFetching } = useQuery({
+    queryKey: ['busca-clientes', queryParam, docParam],
+    queryFn: () => {
+      if (docParam) return clienteApi.buscar(docParam)
+      return clienteApi.buscar(queryParam)
+    },
+    enabled: !!queryParam || !!docParam,
   })
 
-  const handleInput = useCallback((v: string) => {
-    setInput(formatCpfCnpj(v))
-  }, [])
-
-  const handleSubmit = useCallback(() => {
-    const limpo = input.replace(/\D/g, '')
-    if (limpo.length === 11 || limpo.length === 14) setQuery(limpo)
-  }, [input])
-
-  const handleClear = () => { setInput(''); setQuery('') }
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchTerm.trim()) return
+    
+    // Se for apenas números e longo, busca como doc
+    if (/^\d{11,}$/.test(searchTerm.replace(/\D/g, ''))) {
+      router.push(`/busca?doc=${searchTerm.replace(/\D/g, '')}`)
+    } else {
+      router.push(`/busca?q=${searchTerm}`)
+    }
+  }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-8 animate-fade-up">
-        <h1 className="font-sans text-2xl font-bold text-[#f8f8f2] tracking-tight mb-1">Consulta de Elegibilidade</h1>
-        <p className="text-[#6272a4] text-sm font-sans font-medium">
-          Digite o CPF ou CNPJ para verificar se o cliente pode ser atendido
+    <div className="max-w-4xl mx-auto pb-20">
+      <div className="mb-10 text-center animate-fade-up">
+        <h1 className="text-3xl text-premium-title mb-3">Encontrar Clientes</h1>
+        <p className="text-[var(--dash-text-secondary)] text-sm max-w-md mx-auto">
+          Pesquise por Razão Social, Nome Fantasia, CPF ou CNPJ para consultar a elegibilidade técnica.
         </p>
       </div>
 
-      {/* Input */}
-      <div className="animate-fade-up animate-delay-100 mb-6">
-        <div className={clsx(
-          'flex items-center gap-3 bg-[#44475a] px-5 py-3 transition-all duration-200 shadow-sm rounded-2xl border',
-          query && data ? 'border-transparent shadow-md' : 'border-transparent hover:border-[#6272a4]'
-        )}>
-          <Search size={20} className="text-[#6272a4] shrink-0" />
+      <div className="mb-12 animate-fade-up animate-delay-100">
+        <form onSubmit={handleSearch} className="relative group">
+          <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-[var(--dash-text-muted)] group-focus-within:text-[var(--dash-accent)] transition-colors">
+            {isFetching ? <Loader2 size={20} className="animate-spin" /> : <Search size={20} />}
+          </div>
           <input
             type="text"
-            value={input}
-            onChange={(e) => handleInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            placeholder="CPF ou CNPJ (ex: 000.000.000-00 ou 00.000.000/0000-00)"
-            className="flex-1 bg-transparent font-sans text-base text-[#f8f8f2] placeholder-[#6272a4] focus:outline-none"
-            maxLength={18}
-            autoFocus
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Digite o nome ou documento do cliente..."
+            className="w-full h-16 pl-14 pr-6 rounded-2xl bg-[var(--dash-surface)] border border-[var(--dash-border)] text-[var(--dash-text-primary)] placeholder:text-[var(--dash-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--dash-accent-soft)] focus:border-[var(--dash-accent)] transition-all shadow-xl shadow-black/5"
           />
-          {input && (
-            <button onClick={handleClear} className="text-[#6272a4] hover:text-[#ff79c6] transition-colors">
-              <X size={18} />
-            </button>
-          )}
-          <button
-            onClick={handleSubmit}
-            disabled={!(input.replace(/\D/g, '').length === 11 || input.replace(/\D/g, '').length === 14)}
-            className={clsx(
-              'font-sans text-[13px] px-6 py-2.5 rounded-xl transition-all duration-200 shrink-0 font-bold',
-              (input.replace(/\D/g, '').length === 11 || input.replace(/\D/g, '').length === 14)
-                ? 'bg-[#bd93f9] text-[#282a36] hover:bg-[#ff79c6] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
-                : 'bg-[#282a36] text-[#6272a4] cursor-not-allowed'
-            )}
+          <button 
+            type="submit"
+            className="absolute right-3 top-3 bottom-3 px-6 rounded-xl bg-[var(--dash-accent)] text-white font-bold text-sm hover:bg-[var(--dash-accent-text)] transition-all shadow-lg shadow-[var(--dash-accent-soft)]"
           >
-            CONSULTAR
+            Buscar
           </button>
+        </form>
+        
+        <div className="mt-4 flex items-center justify-center gap-6">
+           <div className="flex items-center gap-1.5 text-[10px] text-[var(--dash-text-muted)] uppercase tracking-widest font-mono">
+              <Filter size={12} /> Filtros ativos: {docParam ? 'Documento' : queryParam ? 'Texto' : 'Nenhum'}
+           </div>
         </div>
-        <p className="font-sans text-[13px] text-[#6272a4] mt-3 px-2 font-medium">
-          ↵ pressione Enter ou clique em CONSULTAR após digitar
-        </p>
       </div>
 
-      {/* Loading */}
-      {isLoading && (
-        <div className="space-y-5 animate-fade-in panel p-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Loader2 size={18} className="text-[#bd93f9] animate-spin" />
-            <span className="font-sans text-sm text-[#f8f8f2] font-semibold">Consultando motor de regras…</span>
-          </div>
-          <Skeleton className="h-4 w-3/4 bg-[#282a36] rounded" />
-          <Skeleton className="h-4 w-1/2 bg-[#282a36] rounded" />
-          <Skeleton className="h-4 w-2/3 bg-[#282a36] rounded" />
-        </div>
-      )}
-
-      {/* Erro */}
-      {isError && !isLoading && (
-        <div className="bg-[#ff5555]/10 border border-[#ff5555] rounded-2xl px-6 py-5 animate-fade-in shadow-sm">
-          <p className="font-sans text-xs text-[#ff5555] mb-1.5 font-bold tracking-widest uppercase">ERRO NA CONSULTA</p>
-          <p className="text-[#f8f8f2] text-sm font-sans font-medium">{(error as Error).message}</p>
-        </div>
-      )}
-
-      {/* Resultado */}
-      {data && !isLoading && <StatusCard data={data} />}
-
-      {/* Estado inicial */}
-      {!query && !isLoading && (
-        <div className="animate-fade-in animate-delay-200 mt-20 text-center space-y-5">
-          <div className="w-20 h-20 rounded-full bg-[#44475a] shadow-sm flex items-center justify-center mx-auto text-[#6272a4]">
-            <Search size={32} strokeWidth={1.5} />
-          </div>
-          <p className="font-sans text-[13px] text-[#6272a4] font-semibold uppercase tracking-widest">AGUARDANDO CPF OU CNPJ</p>
-          <div className="flex flex-col items-center gap-2 mt-8">
-            {['12.345.678/0001-90', '123.456.789-00', '98.765.432/0001-10'].map(cnpj => (
-              <p key={cnpj} className="font-mono text-[13px] font-medium text-[#bd93f9] bg-[#44475a] px-4 py-1.5 rounded-full shadow-sm">{cnpj}</p>
+      <div className="animate-fade-up animate-delay-200">
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="premium-card p-6 space-y-4">
+                <Skeleton className="h-5 w-3/4 bg-[var(--dash-bg)]" />
+                <Skeleton className="h-4 w-1/2 bg-[var(--dash-bg)]" />
+                <div className="pt-4 border-t border-[var(--dash-border)]">
+                  <Skeleton className="h-4 w-1/4 bg-[var(--dash-bg)]" />
+                </div>
+              </div>
             ))}
-            <p className="font-sans text-[13px] text-[#6272a4] mt-3 font-medium">exemplos de documentos a consultar</p>
           </div>
-        </div>
-      )}
+        ) : resultados && resultados.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {resultados.map((cliente) => (
+              <Link 
+                key={cliente.id} 
+                href={`/clientes/${cliente.id}`}
+                className="premium-card group hover:scale-[1.02] flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--dash-accent-soft)] border border-[var(--dash-accent-soft)] flex items-center justify-center text-[var(--dash-accent-text)]">
+                      <Building2 size={20} />
+                    </div>
+                    <StatusAtendimentoBadge status={cliente.statusAtendimento || 'REGULAR'} />
+                  </div>
+                  
+                  <h3 className="font-bold text-[var(--dash-text-primary)] text-lg mb-1 leading-tight group-hover:text-[var(--dash-accent-text)] transition-colors">
+                    {cliente.razaoSocial}
+                  </h3>
+                  <p className="text-[var(--dash-text-secondary)] text-xs font-mono mb-4">
+                    {formatCpfCnpj(cliente.cnpj)}
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-[var(--dash-border)] flex items-center justify-between">
+                   <span className="text-premium-muted text-[9px] uppercase">Ver Elegibilidade</span>
+                   <ArrowRight size={14} className="text-[var(--dash-text-muted)] group-hover:text-[var(--dash-accent)] group-hover:translate-x-1 transition-all" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (queryParam || docParam) ? (
+          <div className="premium-card py-20 text-center opacity-70">
+            <UserX size={40} className="text-[var(--dash-text-muted)] mx-auto mb-4" />
+            <p className="text-premium-title text-xl mb-1">Nenhum cliente encontrado</p>
+            <p className="text-sm text-[var(--dash-text-secondary)]">Tente outro termo de busca ou verifique o documento.</p>
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }

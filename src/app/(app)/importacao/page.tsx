@@ -1,243 +1,172 @@
 'use client'
 import { useState, useCallback } from 'react'
+import { useMutation } from '@tanstack/react-query'
+import { clienteApi } from '@/lib/api'
 import { useDropzone } from 'react-dropzone'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { UploadCloud, FileJson, CheckCircle2, AlertCircle, Loader2, RefreshCw, X } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { importacaoApi } from '@/lib/api'
-import { formatDataHora } from '@/lib/utils'
-import { StatusImportacaoBadge, Skeleton } from '@/components/ui'
-import {
-  Upload, FileText, CheckCircle2, AlertTriangle,
-  ChevronDown, ChevronUp, Terminal, Info,
-} from 'lucide-react'
 import clsx from 'clsx'
-import type { ImportacaoCsv } from '@/types/api'
+
+interface ImportResult {
+  message: string
+  totalProcessados: number
+  totalCriados: number
+  totalAtualizados: number
+  errosCount: number
+  erros: string[]
+}
 
 export default function ImportacaoPage() {
-  const qc = useQueryClient()
-  const [expanded, setExpanded] = useState<number | null>(null)
+  const [file, setFile] = useState<File | null>(null)
+  const [results, setResults] = useState<ImportResult | null>(null)
 
-  const { data: historico, isLoading } = useQuery({
-    queryKey: ['importacoes'],
-    queryFn:  () => importacaoApi.listar(0, 30),
-  })
-
-  const mutation = useMutation({
-    mutationFn: importacaoApi.enviar,
-    onSuccess: (result) => {
-      qc.invalidateQueries({ queryKey: ['importacoes'] })
-      qc.invalidateQueries({ queryKey: ['dashboard'] })
-      if (result.status === 'CONCLUIDO') {
-        toast.success(`Concluído — ${result.registrosSucesso} registros importados`)
-      } else if (result.status === 'CONCLUIDO_COM_ERROS') {
-        toast(`Concluído com ${result.registrosErro} erro(s)`, { icon: '⚠️' })
-      } else {
-        toast.error('Falha na importação')
-      }
-    },
-    onError: (err: Error) => toast.error(err.message),
-  })
-
-  const onDrop = useCallback((files: File[]) => {
-    if (files[0]) mutation.mutate(files[0])
-  }, [mutation])
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    setFile(acceptedFiles[0])
+    setResults(null)
+  }, [])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'text/csv': ['.csv'] },
-    maxFiles: 1,
-    disabled: mutation.isPending,
+    multiple: false,
   })
 
+  const mutation = useMutation({
+    mutationFn: (f: File) => clienteApi.importarCsv(f),
+    onSuccess: (data) => {
+      setResults(data)
+      toast.success('Processamento concluído!')
+    },
+    onError: (error: any) => {
+      toast.error('Erro ao processar arquivo: ' + error.message)
+    },
+  })
+
+  const handleImport = () => {
+    if (!file) return
+    mutation.mutate(file)
+  }
+
+  const handleReset = () => {
+    setFile(null)
+    setResults(null)
+  }
+
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8 animate-fade-up">
-        <h1 className="text-2xl font-bold text-white tracking-tight mb-1">Importação CSV</h1>
-        <p className="text-[#6272a4] text-sm">
-          Envie os relatórios exportados do RP Now — tipo detectado automaticamente pelo cabeçalho
+    <div className="max-w-4xl mx-auto pb-20">
+      <div className="mb-10 text-center animate-fade-up">
+        <h1 className="text-3xl text-premium-title mb-3">Importação de Dados</h1>
+        <p className="text-[var(--dash-text-secondary)] text-sm max-w-md mx-auto">
+          Arraste o arquivo CSV do sistema de faturamento para atualizar a base de clientes e elegibilidade técnica.
         </p>
       </div>
 
-      {/* Dropzone */}
-      <div className="animate-fade-up animate-delay-100 mb-6">
-        <div {...getRootProps()} className={clsx(
-          'relative rounded-2xl p-10 text-center transition-all duration-200 cursor-pointer',
-          mutation.isPending
-            ? 'border-2 border-dashed border-[#bd93f9]/40 bg-[#bd93f9]/5'
-            : isDragActive
-            ? 'border-2 border-dashed border-[#bd93f9] bg-[#bd93f9]/8'
-            : 'border-2 border-dashed border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
-        )}>
-          <input {...getInputProps()} />
+      {!results ? (
+        <div className="premium-card p-10 animate-fade-up animate-delay-100">
+          <div
+            {...getRootProps()}
+            className={clsx(
+              'group relative border-2 border-dashed rounded-3xl p-16 text-center transition-all cursor-pointer',
+              isDragActive ? 'border-[var(--dash-accent)] bg-[var(--dash-accent-soft)]' : 'border-[var(--dash-border)] hover:border-[var(--dash-text-muted)]'
+            )}
+          >
+            <input {...getInputProps()} />
+            
+            <div className="mb-6 flex justify-center">
+              <div className={clsx(
+                "w-20 h-20 rounded-full flex items-center justify-center transition-all",
+                file ? "bg-status-green-bg text-status-green" : "bg-[var(--dash-bg)] text-[var(--dash-text-muted)] group-hover:text-[var(--dash-accent-text)] group-hover:scale-110"
+              )}>
+                {file ? <FileJson size={32} /> : <UploadCloud size={32} />}
+              </div>
+            </div>
 
-          {mutation.isPending ? (
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-10 h-10 rounded-full border-2 border-[#bd93f9]/30 border-t-[#bd93f9] animate-spin" />
-              <p className="text-sm font-semibold text-[#bd93f9]">Processando…</p>
-              {mutation.variables?.name && (
-                <p className="text-[13px] text-[#6272a4]">{mutation.variables.name}</p>
+            <div className="space-y-2">
+              {file ? (
+                <>
+                   <p className="text-lg font-bold text-[var(--dash-text-primary)]">Arquivo Selecionado</p>
+                   <p className="text-sm font-mono text-[var(--dash-accent-text)]">{file.name}</p>
+                   <p className="text-[10px] text-[var(--dash-text-muted)] mt-4">{(file.size / 1024).toFixed(1)} KB</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-lg font-bold text-[var(--dash-text-primary)]">
+                    {isDragActive ? 'Solte para selecionar' : 'Arraste ou clique para selecionar'}
+                  </p>
+                  <p className="text-sm text-[var(--dash-text-secondary)]">Formato aceito: .CSV (padrão sistema)</p>
+                </>
               )}
             </div>
-          ) : mutation.isSuccess ? (
-            <div className="flex flex-col items-center gap-3">
-              <CheckCircle2 size={32} className="text-[#50fa7b]" />
-              <p className="font-semibold text-[#50fa7b]">Importação concluída</p>
-              <div className="flex items-center gap-5 text-[13px] text-[#6272a4]">
-                <span>{mutation.data.totalRegistros} total</span>
-                <span className="text-[#50fa7b]">✓ {mutation.data.registrosSucesso} sucesso</span>
-                {mutation.data.registrosErro > 0 && (
-                  <span className="text-[#ff5555]">✗ {mutation.data.registrosErro} erros</span>
+          </div>
+
+          <div className="mt-8 flex gap-4">
+            <button
+              onClick={handleImport}
+              disabled={!file || mutation.isPending}
+              className="flex-1 h-14 rounded-2xl bg-[var(--dash-accent)] text-white font-bold tracking-wide shadow-xl shadow-[var(--dash-accent-soft)] hover:bg-[var(--dash-accent-text)] transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-2"
+            >
+              {mutation.isPending ? <Loader2 className="animate-spin" /> : <RefreshCw size={18} />}
+              {mutation.isPending ? 'Processando...' : 'Iniciar Processamento'}
+            </button>
+            {file && !mutation.isPending && (
+              <button 
+                onClick={handleReset}
+                className="w-14 h-14 rounded-2xl border border-[var(--dash-border)] text-[var(--dash-text-secondary)] flex items-center justify-center hover:bg-status-red-bg hover:text-status-red hover:border-status-red/20 transition-all"
+              >
+                <X size={20} />
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6 animate-fade-in">
+          {/* Status Header */}
+          <div className={clsx(
+            "premium-card p-6 border-l-4",
+            results.errosCount > 0 ? "border-l-status-yellow" : "border-l-status-green"
+          )}>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                {results.errosCount > 0 ? (
+                  <AlertCircle className="text-status-yellow" size={24} />
+                ) : (
+                  <CheckCircle2 className="text-status-green" size={24} />
                 )}
+                <div>
+                  <h3 className="text-xl text-premium-title">Importação {results.errosCount > 0 ? 'Concluída com Alertas' : 'Concluída'}</h3>
+                  <p className="text-sm text-[var(--dash-text-secondary)]">{results.message}</p>
+                </div>
               </div>
-              <button onClick={(e) => { e.stopPropagation(); mutation.reset() }}
-                className="mt-1 text-[12px] text-[#6272a4] hover:text-[#bd93f9] transition-colors">
-                importar outro arquivo →
+              <button 
+                 onClick={handleReset}
+                 className="px-4 py-2 rounded-lg bg-[var(--dash-bg)] border border-[var(--dash-border)] text-premium-muted hover:text-[var(--dash-accent-text)] transition-all"
+              >
+                Voltar
               </button>
             </div>
-          ) : (
-            <div className="flex flex-col items-center gap-3">
-              <div className={clsx(
-                'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-200',
-                isDragActive ? 'bg-[#bd93f9]/20' : 'bg-white/5'
-              )}>
-                <Upload size={22} className={isDragActive ? 'text-[#bd93f9]' : 'text-[#6272a4]'} />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-white mb-1">
-                  {isDragActive ? 'Solte o arquivo aqui' : 'Arraste o CSV ou clique para selecionar'}
-                </p>
-                <p className="text-[12px] text-[#6272a4]">Apenas .csv até 50 MB</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Dicas de formato */}
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          {[
-            { title: 'CSV Contratos', cols: 'Nº Contrato · Nome Cliente · Status · Tipo Contrato · Início Vigência · Fim Vigência · Referência · Obs' },
-            { title: 'CSV Financeiro', cols: 'Cliente · Status · Tipo Pagto · Documento · Dt. Vencimento · Dt. Pagamento · Valor Título · Valor Pago' },
-          ].map(({ title, cols }) => (
-            <div key={title} className="rounded-xl px-4 py-3 flex gap-2"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <Info size={13} className="text-[#6272a4] shrink-0 mt-0.5" />
-              <div>
-                <p className="text-[11px] font-semibold text-[#bd93f9] mb-0.5">{title}</p>
-                <p className="text-[11px] text-[#6272a4] leading-relaxed">{cols}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p className="text-[11px] text-[#6272a4] mt-2 px-1">
-          ⓘ Importe sempre os <span className="text-white/60">Contratos antes do Financeiro</span>
-        </p>
-      </div>
-
-      {/* Histórico */}
-      <div className="animate-fade-up animate-delay-200">
-        <p className="text-[11px] font-semibold text-[#6272a4] tracking-widest uppercase mb-3">
-          Histórico de importações
-        </p>
-
-        {isLoading ? (
-          <div className="panel divide-y divide-white/5">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="px-5 py-4 flex items-center justify-between gap-3">
-                <Skeleton className="h-4 w-52 rounded bg-white/5" />
-                <Skeleton className="h-5 w-24 rounded bg-white/5" />
-              </div>
-            ))}
-          </div>
-        ) : !historico?.content?.length ? (
-          <div className="panel px-5 py-10 text-center">
-            <FileText size={24} className="text-[#383a52] mx-auto mb-3" />
-            <p className="text-[13px] text-[#6272a4]">Nenhuma importação realizada</p>
-          </div>
-        ) : (
-          <div className="panel divide-y divide-white/5">
-            {historico.content.map((imp) => (
-              <ImportacaoRow
-                key={imp.id}
-                imp={imp}
-                expanded={expanded === imp.id}
-                onToggle={() => setExpanded(expanded === imp.id ? null : imp.id)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ── Linha de histórico ────────────────────────────────────────────────────────
-
-function ImportacaoRow({ imp, expanded, onToggle }: {
-  imp: ImportacaoCsv; expanded: boolean; onToggle: () => void
-}) {
-  return (
-    <div>
-      <button onClick={onToggle}
-        className="w-full px-5 py-4 flex items-center gap-3 hover:bg-white/[0.02] transition-colors text-left group">
-        <FileText size={14} className="text-[#6272a4] shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-medium text-white truncate">{imp.nomeArquivo}</p>
-          <p className="text-[11px] text-[#6272a4] mt-0.5 font-mono">
-            {formatDataHora(imp.dataImportacao)} · {imp.totalRegistros} registros
-          </p>
-        </div>
-        <StatusImportacaoBadge status={imp.status} />
-        <span className="text-[#6272a4] ml-1">
-          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        </span>
-      </button>
-
-      {expanded && (
-        <div className="px-5 pb-5 animate-fade-in">
-          {/* Stats */}
-          <div className="flex gap-6 mb-4">
-            <Stat label="Total"   value={imp.totalRegistros}   color="text-white" />
-            <Stat label="Sucesso" value={imp.registrosSucesso} color="text-[#50fa7b]" />
-            <Stat label="Erros"   value={imp.registrosErro}    color={imp.registrosErro > 0 ? 'text-[#ff5555]' : 'text-[#6272a4]'} />
           </div>
 
-          {/* Log de erros — estilo terminal */}
-          {imp.detalhesErro && (
-            <div className="rounded-xl overflow-hidden"
-              style={{ background: '#0d0e17', border: '1px solid rgba(255,85,85,0.2)' }}>
-              {/* Barra de título do terminal */}
-              <div className="flex items-center gap-2 px-4 py-2.5"
-                style={{ background: 'rgba(255,85,85,0.08)', borderBottom: '1px solid rgba(255,85,85,0.15)' }}>
-                <Terminal size={13} className="text-[#ff5555]" />
-                <p className="text-[11px] font-semibold text-[#ff5555] tracking-widest uppercase">
-                  Log de erros · {imp.registrosErro} ocorrência(s)
-                </p>
-              </div>
-              {/* Conteúdo do terminal */}
-              <div className="p-4 max-h-64 overflow-y-auto">
-                {imp.detalhesErro.split('\n').filter(Boolean).map((linha, i) => {
-                  // Extrai "Linha X" do início para destacar número da linha
-                  const match = linha.match(/^(Linha\s+\d+):\s*(.+)/)
-                  if (match) {
-                    return (
-                      <div key={i} className="flex gap-3 mb-2 last:mb-0">
-                        <span className="shrink-0 font-mono text-[11px] font-bold text-[#ff5555] min-w-[64px]">
-                          {match[1]}
-                        </span>
-                        <span className="font-mono text-[11px] text-[#6272a4] leading-relaxed">
-                          {match[2]}
-                        </span>
-                      </div>
-                    )
-                  }
-                  // Linha sem prefixo "Linha X"
-                  return (
-                    <p key={i} className="font-mono text-[11px] text-[#6272a4] leading-relaxed mb-1 last:mb-0">
-                      {linha}
-                    </p>
-                  )
-                })}
-              </div>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+             <StatBox label="Processados" value={results.totalProcessados} />
+             <StatBox label="Novos"        value={results.totalCriados} color="text-status-green" />
+             <StatBox label="Atualizados"  value={results.totalAtualizados} color="text-[var(--dash-accent-text)]" />
+             <StatBox label="Com Erro"     value={results.errosCount} color={results.errosCount > 0 ? "text-status-red" : "text-[var(--dash-text-muted)]"} />
+          </div>
+
+          {/* Errors Section */}
+          {results.errosCount > 0 && (
+            <div className="premium-card bg-status-red-bg border-status-red/10">
+               <h4 className="flex items-center gap-2 text-status-red font-bold text-sm mb-4">
+                  <AlertCircle size={16} /> Relatório de Falhas
+               </h4>
+               <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                  {results.erros.map((err, i) => (
+                    <div key={i} className="py-2 px-3 bg-black/20 rounded-lg font-mono text-[11px] text-red-200 border border-status-red/5">
+                       {err}
+                    </div>
+                  ))}
+               </div>
             </div>
           )}
         </div>
@@ -246,11 +175,11 @@ function ImportacaoRow({ imp, expanded, onToggle }: {
   )
 }
 
-function Stat({ label, value, color }: { label: string; value: number; color: string }) {
+function StatBox({ label, value, color = "text-[var(--dash-text-primary)]" }: { label: string; value: number; color?: string }) {
   return (
-    <div>
-      <p className="text-[10px] text-[#6272a4] uppercase tracking-widest mb-0.5">{label}</p>
-      <p className={clsx('text-lg font-bold font-mono', color)}>{value}</p>
+    <div className="premium-card p-5 text-center">
+      <span className="text-premium-muted text-[8px] uppercase tracking-tighter mb-1 block">{label}</span>
+      <p className={clsx("text-2xl font-bold font-mono tracking-tighter", color)}>{value}</p>
     </div>
   )
 }
