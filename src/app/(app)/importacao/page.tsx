@@ -3,9 +3,8 @@ import { useState, useCallback } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { importacaoApi } from '@/lib/api'
 import { useDropzone } from 'react-dropzone'
-import { UploadCloud, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, RefreshCw, X, ArrowRight } from 'lucide-react'
+import { UploadCloud, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, RefreshCw, X, FileText, Database, Shield } from 'lucide-react'
 import toast from 'react-hot-toast'
-import clsx from 'clsx'
 
 interface ImportResult {
   message: string
@@ -53,121 +52,131 @@ export default function ImportacaoPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-20">
+    <div style={{ maxWidth: 800, margin: '0 auto', paddingBottom: 60 }}>
       {/* Header */}
-      <div className="mb-10 text-center animate-fade-up">
-        <h1 className="text-title text-3xl mb-3">Importação de Dados</h1>
-        <p className="text-base-400 text-sm max-w-lg mx-auto leading-relaxed">
-          Arraste o arquivo CSV do sistema de faturamento para atualizar a base de clientes e elegibilidade.
+      <div className="animate-fade-up" style={{ marginBottom: 32 }}>
+        <h1 className="text-title" style={{ fontSize: 24, marginBottom: 6 }}>Importação de Dados</h1>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
+          Atualize a base de clientes e elegibilidade processando arquivos CSV do sistema de faturamento.
         </p>
       </div>
 
+      {/* Info cards */}
+      <div className="animate-fade-up animate-delay-100" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+        <InfoCard icon={<FileText size={18} />} title="Formato" desc="Arquivos .CSV compatíveis com o sistema de faturamento" />
+        <InfoCard icon={<Database size={18} />} title="Processamento" desc="Novos clientes serão criados, existentes atualizados" />
+        <InfoCard icon={<Shield size={18} />} title="Validação" desc="Registros inválidos são reportados sem afetar os demais" />
+      </div>
+
       {!results ? (
-        <div className="premium-card p-8 animate-fade-up animate-delay-100">
+        <div className="card animate-fade-up animate-delay-200" style={{ padding: 32 }}>
           {/* Dropzone */}
           <div
             {...getRootProps()}
-            className={clsx(
-              'group relative border-2 border-dashed rounded-2xl p-14 text-center transition-all cursor-pointer',
-              isDragActive
-                ? 'border-accent-500 bg-accent-glow'
-                : 'border-base-600 hover:border-base-400'
-            )}
+            style={{
+              border: `2px dashed ${isDragActive ? 'var(--accent)' : 'var(--border-default)'}`,
+              borderRadius: 16,
+              padding: '48px 24px',
+              textAlign: 'center',
+              cursor: 'pointer',
+              background: isDragActive ? 'var(--accent-light)' : 'var(--bg-elevated)',
+              transition: 'all 0.2s ease',
+            }}
           >
             <input {...getInputProps()} />
 
-            <div className="mb-6 flex justify-center">
-              <div className={clsx(
-                "w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300",
-                file
-                  ? "bg-ok-dim text-ok glow-ok"
-                  : "bg-base-850 text-base-400 group-hover:text-accent-400 group-hover:bg-accent-glow group-hover:scale-110"
-              )}>
-                {file ? <FileSpreadsheet size={32} /> : <UploadCloud size={32} />}
-              </div>
+            <div style={{
+              width: 64, height: 64, borderRadius: 16, margin: '0 auto 20px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: file ? 'rgba(34,197,94,0.1)' : 'var(--bg-card)',
+              color: file ? '#22c55e' : 'var(--text-muted)',
+              border: `1px solid ${file ? 'rgba(34,197,94,0.2)' : 'var(--border-light)'}`,
+              transition: 'all 0.2s',
+            }}>
+              {file ? <FileSpreadsheet size={28} /> : <UploadCloud size={28} />}
             </div>
 
-            <div className="space-y-2">
-              {file ? (
-                <>
-                  <p className="text-lg font-bold text-white">Arquivo Selecionado</p>
-                  <p className="text-sm font-mono text-accent-300">{file.name}</p>
-                  <p className="text-label mt-4">{(file.size / 1024).toFixed(1)} KB</p>
-                </>
-              ) : (
-                <>
-                  <p className="text-lg font-bold text-white">
-                    {isDragActive ? 'Solte para selecionar' : 'Arraste ou clique para selecionar'}
-                  </p>
-                  <p className="text-sm text-base-400">Formato aceito: .CSV (padrão sistema de faturamento)</p>
-                </>
-              )}
-            </div>
+            {file ? (
+              <>
+                <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Arquivo Selecionado</p>
+                <p style={{ fontSize: 14, fontFamily: 'var(--font-mono)', color: 'var(--accent-text)', marginBottom: 8 }}>{file.name}</p>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{(file.size / 1024).toFixed(1)} KB</p>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+                  {isDragActive ? 'Solte para selecionar' : 'Arraste ou clique para selecionar'}
+                </p>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Formato aceito: .CSV (padrão sistema de faturamento)</p>
+              </>
+            )}
           </div>
 
           {/* Actions */}
-          <div className="mt-8 flex gap-3">
+          <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
             <button
               onClick={handleImport}
               disabled={!file || mutation.isPending}
-              className="btn-primary flex-1 h-14 text-sm"
+              className="btn-primary"
+              style={{ flex: 1, height: 48, fontSize: 14 }}
             >
-              {mutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <RefreshCw size={18} />}
+              {mutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
               {mutation.isPending ? 'Processando...' : 'Iniciar Processamento'}
             </button>
             {file && !mutation.isPending && (
-              <button
-                onClick={handleReset}
-                className="btn-ghost w-14 h-14 !p-0 text-base-400 hover:!text-danger hover:!border-danger/30 hover:!bg-danger-dim"
-              >
-                <X size={20} />
+              <button onClick={handleReset} className="btn-ghost" style={{ width: 48, height: 48, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <X size={18} />
               </button>
             )}
           </div>
         </div>
       ) : (
-        <div className="space-y-4 animate-fade-in">
+        <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Result Header */}
-          <div className={clsx(
-            "premium-card border-l-4",
-            results.errosCount > 0 ? "border-l-warn" : "border-l-ok"
-          )}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-3">
+          <div className="card" style={{
+            padding: 24,
+            borderLeft: `4px solid ${results.errosCount > 0 ? '#f59e0b' : '#22c55e'}`,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 {results.errosCount > 0
-                  ? <AlertCircle className="text-warn shrink-0" size={24} />
-                  : <CheckCircle2 className="text-ok shrink-0" size={24} />
+                  ? <AlertCircle size={22} style={{ color: '#f59e0b' }} />
+                  : <CheckCircle2 size={22} style={{ color: '#22c55e' }} />
                 }
                 <div>
-                  <h3 className="text-title text-xl">
+                  <h3 className="text-title" style={{ fontSize: 18 }}>
                     {results.errosCount > 0 ? 'Concluída com Alertas' : 'Importação Concluída'}
                   </h3>
-                  <p className="text-sm text-base-400 mt-0.5">{results.message}</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{results.message}</p>
                 </div>
               </div>
-              <button onClick={handleReset} className="btn-ghost text-sm shrink-0">
+              <button onClick={handleReset} className="btn-ghost" style={{ fontSize: 13, flexShrink: 0 }}>
                 Nova Importação
               </button>
             </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatBox label="Processados" value={results.totalProcessados} />
-            <StatBox label="Novos" value={results.totalCriados} color="text-ok" />
-            <StatBox label="Atualizados" value={results.totalAtualizados} color="text-info" />
-            <StatBox label="Com Erro" value={results.errosCount} color={results.errosCount > 0 ? "text-danger" : "text-base-500"} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            <ResultStat label="Processados" value={results.totalProcessados} />
+            <ResultStat label="Novos" value={results.totalCriados} color="#22c55e" />
+            <ResultStat label="Atualizados" value={results.totalAtualizados} color="#3b82f6" />
+            <ResultStat label="Com Erro" value={results.errosCount} color={results.errosCount > 0 ? '#ef4444' : undefined} />
           </div>
 
           {/* Error Details */}
           {results.errosCount > 0 && (
-            <div className="premium-card !bg-danger-dim !border-danger/10">
-              <h4 className="flex items-center gap-2 text-danger font-bold text-sm mb-4">
+            <div className="card" style={{ padding: 20, background: 'rgba(239,68,68,0.04)', borderColor: 'rgba(239,68,68,0.15)' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: '#ef4444', marginBottom: 12 }}>
                 <AlertCircle size={16} /> Relatório de Falhas
               </h4>
-              <div className="space-y-2 max-h-60 overflow-y-auto custom-scroll pr-2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 240, overflowY: 'auto' }}>
                 {results.erros.map((err, i) => (
-                  <div key={i} className="py-2 px-3 bg-base-950/60 rounded-lg font-mono text-[11px] text-red-300 border border-danger/10">
+                  <div key={i} style={{
+                    padding: '8px 12px', borderRadius: 8,
+                    background: 'var(--bg-card)', border: '1px solid var(--border-light)',
+                    fontFamily: 'var(--font-mono)', fontSize: 11, color: '#ef4444',
+                  }}>
                     {err}
                   </div>
                 ))}
@@ -180,11 +189,23 @@ export default function ImportacaoPage() {
   )
 }
 
-function StatBox({ label, value, color = "text-white" }: { label: string; value: number; color?: string }) {
+function InfoCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
-    <div className="premium-card text-center py-5">
-      <span className="text-label text-[8px] mb-1.5 block">{label}</span>
-      <p className={clsx("text-2xl font-bold font-mono tracking-tighter", color)}>{value}</p>
+    <div className="card" style={{ padding: 16, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      <div style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 2 }}>{icon}</div>
+      <div>
+        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>{title}</p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4 }}>{desc}</p>
+      </div>
+    </div>
+  )
+}
+
+function ResultStat({ label, value, color }: { label: string; value: number; color?: string }) {
+  return (
+    <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+      <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: 6 }}>{label}</span>
+      <p style={{ fontSize: 24, fontWeight: 700, fontFamily: 'var(--font-mono)', letterSpacing: '-0.02em', color: color || 'var(--text-primary)' }}>{value}</p>
     </div>
   )
 }

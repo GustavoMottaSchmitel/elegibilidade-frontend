@@ -6,7 +6,6 @@ import { formatCpfCnpj, formatMoeda } from '@/lib/utils'
 import { AlertCircle, UserX, ChevronLeft, ChevronRight, TrendingDown, ArrowUpRight, Hash } from 'lucide-react'
 import { Skeleton } from '@/components/ui'
 import Link from 'next/link'
-import clsx from 'clsx'
 
 export default function InadimplentesPage() {
   const [page, setPage] = useState(0)
@@ -18,26 +17,30 @@ export default function InadimplentesPage() {
   })
 
   return (
-    <div className="pb-10">
+    <div style={{ paddingBottom: 40 }}>
       {/* Header */}
-      <div className="mb-8 animate-fade-up">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-warn-dim border border-warn/15">
-            <AlertCircle size={20} className="text-warn" />
+      <div className="animate-fade-up" style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 10, display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(245,158,11,0.1)', color: '#f59e0b',
+          }}>
+            <AlertCircle size={20} />
           </div>
-          <h1 className="text-title text-2xl">Clientes Inadimplentes</h1>
+          <h1 className="text-title" style={{ fontSize: 22 }}>Clientes Inadimplentes</h1>
         </div>
-        <p className="text-base-400 text-sm ml-[52px]">
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginLeft: 52 }}>
           Clientes com parcelas em atraso (1 a 90 dias)
         </p>
       </div>
 
       <div className="animate-fade-up animate-delay-100">
         {isLoading ? (
-          <div className="card divide-y divide-base-750">
+          <div className="card" style={{ overflow: 'hidden' }}>
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="px-6 py-4 flex items-center justify-between">
-                <div className="space-y-2">
+              <div key={i} style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <Skeleton className="h-4 w-52" />
                   <Skeleton className="h-3 w-32" />
                 </div>
@@ -46,30 +49,30 @@ export default function InadimplentesPage() {
             ))}
           </div>
         ) : isError ? (
-          <div className="premium-card !bg-danger-dim !border-danger/15">
-            <p className="text-danger font-bold text-sm mb-1">Erro de Conexão</p>
-            <p className="text-sm text-base-400">Não foi possível carregar a lista.</p>
+          <div className="card" style={{ padding: 24, borderLeft: '4px solid #ef4444' }}>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#ef4444', marginBottom: 4 }}>Erro de Conexão</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Não foi possível carregar a lista.</p>
           </div>
         ) : !data?.content.length ? (
-          <div className="premium-card py-20 text-center">
-            <div className="w-16 h-16 rounded-full bg-base-850 flex items-center justify-center mx-auto mb-4 border border-base-700">
-              <UserX size={32} className="text-base-500" />
+          <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', border: '1px solid var(--border-light)' }}>
+              <UserX size={28} style={{ color: 'var(--text-muted)' }} />
             </div>
-            <p className="text-title text-lg mb-1">Tudo em dia!</p>
-            <p className="text-sm text-base-400">Não há clientes com faturas em atraso.</p>
+            <p className="text-title" style={{ fontSize: 16, marginBottom: 4 }}>Tudo em dia!</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Não há clientes com faturas em atraso.</p>
           </div>
         ) : (
           <>
             {/* Summary Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-              <MiniStat label="Total Inadimplentes" value={data.totalElements} color="warn" icon={<TrendingDown size={16} />} />
-              <MiniStat label="Nesta Página" value={data.content.length} color="warn" icon={<Hash size={16} />} />
-              <MiniStat label="Páginas" value={data.totalPages} color="info" icon={<AlertCircle size={16} />} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+              <MiniStat label="Total Inadimplentes" value={data.totalElements} color="#f59e0b" icon={<TrendingDown size={16} />} />
+              <MiniStat label="Nesta Página" value={data.content.length} color="var(--text-primary)" icon={<Hash size={16} />} />
+              <MiniStat label="Páginas" value={data.totalPages} color="var(--accent)" icon={<AlertCircle size={16} />} />
             </div>
 
             {/* Table */}
-            <div className="card overflow-hidden">
-              <div className="overflow-x-auto">
+            <div className="card" style={{ overflow: 'hidden' }}>
+              <div style={{ overflowX: 'auto' }}>
                 <table className="data-table">
                   <thead>
                     <tr>
@@ -85,36 +88,43 @@ export default function InadimplentesPage() {
                       return (
                         <tr key={cliente.id}>
                           <td>
-                            <p className="font-semibold text-white text-[14px]">{cliente.razaoSocial}</p>
-                            {cliente.nomeFantasia && <p className="text-[12px] text-base-400 mt-0.5">{cliente.nomeFantasia}</p>}
+                            <p style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: 14 }}>{cliente.razaoSocial}</p>
+                            {cliente.nomeFantasia && <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{cliente.nomeFantasia}</p>}
                           </td>
                           <td>
-                            <span className="font-mono text-[12px] text-accent-300 px-2.5 py-1 rounded-lg bg-accent-glow">
+                            <span style={{
+                              fontFamily: 'var(--font-mono)', fontSize: 12,
+                              color: 'var(--accent-text)', padding: '3px 8px',
+                              borderRadius: 6, background: 'var(--accent-light)',
+                            }}>
                               {formatCpfCnpj(cliente.cnpj)}
                             </span>
                           </td>
                           <td>
                             {fin ? (
-                              <div className="space-y-1.5">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-label text-[9px]">Aberto:</span>
-                                  <span className="text-[13px] font-mono font-bold text-warn">{formatMoeda(fin.valorEmAberto)}</span>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Aberto:</span>
+                                  <span style={{ fontSize: 13, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#f59e0b' }}>{formatMoeda(fin.valorEmAberto)}</span>
                                 </div>
                                 {fin.diasAtraso > 0 && (
-                                  <span className={clsx(
-                                    'badge text-[10px]',
-                                    fin.diasAtraso > 30 ? 'badge-warn' : 'badge-muted'
-                                  )}>
+                                  <span className={fin.diasAtraso > 30 ? 'badge badge-warn' : 'badge badge-muted'}
+                                    style={{ width: 'fit-content' }}
+                                  >
                                     {fin.diasAtraso} dias
                                   </span>
                                 )}
                               </div>
-                            ) : <span className="text-base-500 text-xs">—</span>}
+                            ) : <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>}
                           </td>
                           <td>
                             <Link href={`/busca?doc=${cliente.cnpj}`}
-                              className="inline-flex items-center gap-1.5 text-[12px] font-bold text-accent-300 hover:text-white transition-all group">
-                              Consultar <ArrowUpRight size={13} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                              style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 4,
+                                fontSize: 12, fontWeight: 600, color: 'var(--accent-text)',
+                                textDecoration: 'none',
+                              }}>
+                              Consultar <ArrowUpRight size={13} />
                             </Link>
                           </td>
                         </tr>
@@ -126,13 +136,18 @@ export default function InadimplentesPage() {
 
               {/* Pagination */}
               {data.totalPages > 1 && (
-                <div className="px-6 py-4 flex items-center justify-between bg-base-850 border-t border-base-750">
-                  <p className="text-[11px] text-base-400 font-mono">
-                    <span className="text-white">{data.number * data.size + 1}–{Math.min((data.number + 1) * data.size, data.totalElements)}</span> de <span className="text-white">{data.totalElements}</span>
+                <div style={{
+                  padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  background: 'var(--bg-elevated)', borderTop: '1px solid var(--border-light)',
+                }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{data.number * data.size + 1}–{Math.min((data.number + 1) * data.size, data.totalElements)}</span>
+                    {' '}de{' '}
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{data.totalElements}</span>
                   </p>
-                  <div className="flex gap-2">
-                    <PaginationBtn onClick={() => setPage(p => Math.max(0, p - 1))} disabled={data.number === 0}><ChevronLeft size={16} /></PaginationBtn>
-                    <PaginationBtn onClick={() => setPage(p => Math.min(data.totalPages - 1, p + 1))} disabled={data.number >= data.totalPages - 1}><ChevronRight size={16} /></PaginationBtn>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <PagBtn onClick={() => setPage(p => Math.max(0, p - 1))} disabled={data.number === 0}><ChevronLeft size={16} /></PagBtn>
+                    <PagBtn onClick={() => setPage(p => Math.min(data.totalPages - 1, p + 1))} disabled={data.number >= data.totalPages - 1}><ChevronRight size={16} /></PagBtn>
                   </div>
                 </div>
               )}
@@ -144,30 +159,31 @@ export default function InadimplentesPage() {
   )
 }
 
-function MiniStat({ label, value, color, icon }: { label: string; value: number; color: 'warn' | 'info'; icon: React.ReactNode }) {
-  const isWarn = color === 'warn'
+function MiniStat({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
   return (
-    <div className="premium-card flex items-center gap-4 py-4 px-5">
-      <div className={clsx(
-        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-        isWarn ? "bg-warn-dim text-warn" : "bg-info-dim text-info"
-      )}>
+    <div className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px' }}>
+      <div style={{
+        width: 40, height: 40, borderRadius: 10, display: 'flex',
+        alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        background: `${color}15`, color,
+      }}>
         {icon}
       </div>
       <div>
-        <p className="text-label text-[8px]">{label}</p>
-        <p className={clsx("text-2xl font-bold font-mono tracking-tighter", isWarn ? "text-warn" : "text-white")}>
-          {value}
-        </p>
+        <p style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</p>
+        <p style={{ fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-mono)', letterSpacing: '-0.02em', color }}>{value}</p>
       </div>
     </div>
   )
 }
 
-function PaginationBtn({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) {
+function PagBtn({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} disabled={disabled}
-      className="btn-ghost w-9 h-9 !p-0 disabled:opacity-30 disabled:cursor-not-allowed"
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="btn-ghost"
+      style={{ width: 36, height: 36, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: disabled ? 0.3 : 1 }}
     >
       {children}
     </button>

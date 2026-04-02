@@ -77,9 +77,9 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose, theme,
           flexShrink: 0,
         }}>
           <img
-            src="/logo-dark.png"
+            src="/logo-icon.png"
             alt="ATA"
-            style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0 }}
+            style={{ width: collapsed ? 36 : 32, height: collapsed ? 36 : 32, objectFit: 'contain', flexShrink: 0, borderRadius: 8 }}
           />
           {!collapsed && (
             <div>

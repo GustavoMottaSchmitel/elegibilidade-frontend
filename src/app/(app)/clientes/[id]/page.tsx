@@ -5,7 +5,6 @@ import { clienteApi } from '@/lib/api'
 import { formatCpfCnpj, formatMoeda, formatData, formatDataHora } from '@/lib/utils'
 import { StatusAtendimentoBadge, StatusContratoBadge, Skeleton } from '@/components/ui'
 import { ArrowLeft, Building2, Phone, Mail, MapPin, FileText, Wallet, Calendar, Clock, AlertCircle } from 'lucide-react'
-import clsx from 'clsx'
 
 export default function ClienteDetalhePage() {
   const { id } = useParams<{ id: string }>()
@@ -27,88 +26,98 @@ export default function ClienteDetalhePage() {
   const isLoading = loadDetalhe || loadStatus
 
   return (
-    <div className="max-w-4xl mx-auto pb-20">
+    <div style={{ maxWidth: 960, margin: '0 auto', paddingBottom: 60 }}>
       {/* Back */}
       <button
         onClick={() => router.back()}
-        className="btn-ghost text-[11px] font-mono uppercase tracking-widest mb-8 group"
+        className="btn-ghost"
+        style={{ marginBottom: 24, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}
       >
-        <ArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
-        Voltar para lista
+        <ArrowLeft size={14} />
+        Voltar
       </button>
 
       {isLoading ? (
         <LoadingSkeleton />
       ) : detalhe ? (
-        <div className="space-y-6 animate-fade-in">
-          {/* Profile Header */}
-          <div className="premium-card p-8 border-l-4 border-l-accent-500 relative overflow-hidden">
-            <Building2 size={120} className="absolute -right-6 -bottom-6 text-accent-500 opacity-[0.04] rotate-12" />
-
-            <div className="relative z-10">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                <div>
-                  <h1 className="text-title text-2xl md:text-3xl mb-2 tracking-tight">{detalhe.razaoSocial}</h1>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="font-mono text-xs px-2.5 py-1 rounded-md bg-base-850 border border-base-700 text-base-200">
-                      {formatCpfCnpj(detalhe.cnpj)}
+        <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Profile Header Card */}
+          <div className="card" style={{ padding: 28, borderLeft: '4px solid var(--accent)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
+              <div>
+                <h1 className="text-title" style={{ fontSize: 22, marginBottom: 8 }}>{detalhe.razaoSocial}</h1>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 12,
+                    padding: '4px 10px', borderRadius: 6,
+                    background: 'var(--bg-elevated)', border: '1px solid var(--border-light)',
+                    color: 'var(--text-secondary)',
+                  }}>
+                    {formatCpfCnpj(detalhe.cnpj)}
+                  </span>
+                  {detalhe.nomeFantasia && (
+                    <span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic', borderLeft: '1px solid var(--border-light)', paddingLeft: 10 }}>
+                      {detalhe.nomeFantasia}
                     </span>
-                    {detalhe.nomeFantasia && (
-                      <span className="text-base-400 text-[13px] italic border-l border-base-700 pl-3">
-                        {detalhe.nomeFantasia}
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
-                {status && <StatusAtendimentoBadge status={status.statusAtendimento} />}
               </div>
+              {status && <StatusAtendimentoBadge status={status.statusAtendimento} />}
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 pt-5 border-t border-base-700/50">
-                <ContactBadge icon={<Mail size={14} />} label="E-mail" value={detalhe.email || '—'} />
-                <ContactBadge icon={<Phone size={14} />} label="Telefone" value={detalhe.telefone || '—'} mono />
-                <ContactBadge icon={<MapPin size={14} />} label="Localização" value={[detalhe.cidade, detalhe.estado].filter(Boolean).join(' · ') || '—'} />
-              </div>
+            {/* Contact Info Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, paddingTop: 16, borderTop: '1px solid var(--border-light)' }}>
+              <ContactInfo icon={<Mail size={14} />} label="E-mail" value={detalhe.email || '—'} />
+              <ContactInfo icon={<Phone size={14} />} label="Telefone" value={detalhe.telefone || '—'} mono />
+              <ContactInfo icon={<MapPin size={14} />} label="Localização" value={[detalhe.cidade, detalhe.estado].filter(Boolean).join(' · ') || '—'} />
             </div>
           </div>
 
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Contracts Column */}
-            <div className="lg:col-span-2 space-y-4">
-              <h3 className="text-label mb-2 flex items-center gap-2">
-                <FileText size={14} className="text-accent-400" />
+          {/* Main Grid: Contracts + Financial */}
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
+            {/* Contracts */}
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <FileText size={14} style={{ color: 'var(--accent)' }} />
                 Contratos ({detalhe.contratos.length})
-              </h3>
+              </p>
 
               {detalhe.contratos.length === 0 ? (
-                <div className="premium-card p-10 text-center opacity-60">
-                  <p className="text-sm font-mono text-base-400 italic">Nenhum contrato registrado.</p>
+                <div className="card" style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+                  Nenhum contrato registrado.
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {detalhe.contratos.map((c) => (
-                    <div key={c.id} className="premium-card group hover:!border-accent-500/40 transition-all duration-300">
-                      <div className="flex items-start justify-between mb-5">
-                        <div className="flex gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-base-850 border border-base-700 flex items-center justify-center text-accent-400">
+                    <div key={c.id} className="card" style={{ padding: 20, transition: 'all 0.2s', borderLeft: '3px solid var(--accent)' }}>
+                      {/* Contract Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                        <div style={{ display: 'flex', gap: 12 }}>
+                          <div style={{
+                            width: 40, height: 40, borderRadius: 10,
+                            background: 'var(--accent-light)', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                            color: 'var(--accent-text)',
+                          }}>
                             <Wallet size={18} />
                           </div>
                           <div>
-                            <p className="font-mono text-[14px] text-white font-bold">{c.numeroContrato}</p>
-                            <p className="text-label text-[9px]">{c.tipoContrato}</p>
+                            <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>{c.numeroContrato}</p>
+                            <p style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{c.tipoContrato}</p>
                           </div>
                         </div>
                         <StatusContratoBadge status={c.statusContrato} />
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4 py-4 border-y border-base-700/40">
-                        <ContractStat label="Início" value={formatData(c.dataInicio)} icon={<Calendar size={12}/>} />
-                        <ContractStat label="Vencimento" value={formatData(c.dataFim)} icon={<Clock size={12}/>} isBold />
-                        <ContractStat label="Faturamento" value={formatMoeda(c.valorMensal)} icon={<FileText size={12}/>} />
+                      {/* Contract Details */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, padding: '12px 0', borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)' }}>
+                        <DetailCell icon={<Calendar size={12} />} label="Início" value={formatData(c.dataInicio)} />
+                        <DetailCell icon={<Clock size={12} />} label="Vencimento" value={formatData(c.dataFim)} bold />
+                        <DetailCell icon={<FileText size={12} />} label="Faturamento" value={formatMoeda(c.valorMensal)} />
                       </div>
 
                       {c.observacao && (
-                        <p className="mt-4 text-[12px] leading-relaxed text-base-300 italic pl-4 border-l-2 border-base-700">
+                        <p style={{ marginTop: 12, fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic', paddingLeft: 12, borderLeft: '2px solid var(--border-light)', lineHeight: 1.6 }}>
                           &ldquo;{c.observacao}&rdquo;
                         </p>
                       )}
@@ -119,53 +128,51 @@ export default function ClienteDetalhePage() {
             </div>
 
             {/* Financial Sidebar */}
-            <div className="space-y-6">
-              <section>
-                <h3 className="text-label mb-3">Saúde Financeira</h3>
-                {detalhe.financeiros.length > 0 ? (
-                  <div className="space-y-3">
-                    {detalhe.financeiros.map((f) => (
-                      <div key={f.id} className={clsx(
-                        "premium-card p-5 border-l-2",
-                        f.possuiDebito ? "border-l-danger" : "border-l-ok"
-                      )}>
-                        <div className="flex justify-between items-center mb-3 pb-2 border-b border-base-750">
-                          <span className="text-label text-[9px]">Nº {f.numeroContrato || 'N/A'}</span>
-                          <span className={clsx(
-                            "w-2 h-2 rounded-full",
-                            f.possuiDebito ? "bg-danger dot-pulse" : "bg-ok"
-                          )} />
-                        </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Saúde Financeira
+              </p>
 
-                        <div className="space-y-2.5">
-                          <FinanceRow label="Status" value={f.possuiDebito ? 'Inadimplente' : 'Regular'} highlight={f.possuiDebito} />
-                          <FinanceRow label="Em Aberto" value={formatMoeda(f.valorEmAberto)} bold highlight={f.valorEmAberto > 0} />
-                          <FinanceRow label="Dias Atraso" value={f.diasAtraso > 0 ? `${f.diasAtraso} dias` : 'Nenhum'} highlight={f.diasAtraso > 0} />
-                        </div>
-
-                        {f.dataUltimoPagamento && (
-                          <p className="mt-3 pt-2 border-t border-base-750 text-[10px] text-right text-base-400 italic font-mono">
-                            Pagto: {formatData(f.dataUltimoPagamento)}
-                          </p>
-                        )}
+              {detalhe.financeiros.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {detalhe.financeiros.map((f) => (
+                    <div key={f.id} className="card" style={{
+                      padding: 16,
+                      borderLeft: `3px solid ${f.possuiDebito ? '#ef4444' : '#22c55e'}`,
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border-light)' }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Nº {f.numeroContrato || 'N/A'}</span>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: f.possuiDebito ? '#ef4444' : '#22c55e' }} className={f.possuiDebito ? 'dot-pulse' : ''} />
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="premium-card p-10 text-center opacity-60">
-                    <p className="text-xs font-mono text-base-400 italic">Nenhum dado financeiro.</p>
-                  </div>
-                )}
-              </section>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <FinRow label="Status" value={f.possuiDebito ? 'Inadimplente' : 'Regular'} bad={f.possuiDebito} />
+                        <FinRow label="Em Aberto" value={formatMoeda(f.valorEmAberto)} bad={f.valorEmAberto > 0} bold />
+                        <FinRow label="Dias Atraso" value={f.diasAtraso > 0 ? `${f.diasAtraso} dias` : 'Nenhum'} bad={f.diasAtraso > 0} />
+                      </div>
+
+                      {f.dataUltimoPagamento && (
+                        <p style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--border-light)', fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textAlign: 'right' }}>
+                          Pagto: {formatData(f.dataUltimoPagamento)}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="card" style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+                  Nenhum dado financeiro.
+                </div>
+              )}
 
               {/* Metadata */}
-              <div className="premium-card !bg-base-850 !border-base-750 p-5">
-                <h3 className="text-label text-[9px] mb-3">Metadata do Registro</h3>
-                <div className="space-y-2.5">
+              <div className="card" style={{ padding: 16, background: 'var(--bg-elevated)' }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>Registro</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <MetaRow label="Criado em" value={formatDataHora(detalhe.criadoEm)} />
                   <MetaRow label="Atualizado" value={formatDataHora(detalhe.atualizadoEm)} />
-                  <div className="pt-2 flex justify-end">
-                    <span className="text-[9px] font-mono text-accent-300 bg-accent-glow p-2 rounded-lg">
+                  <div style={{ paddingTop: 6, display: 'flex', justifyContent: 'flex-end' }}>
+                    <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--accent-text)', background: 'var(--accent-light)', padding: '4px 8px', borderRadius: 6 }}>
                       ID #{detalhe.id}
                     </span>
                   </div>
@@ -175,56 +182,52 @@ export default function ClienteDetalhePage() {
           </div>
         </div>
       ) : (
-        <div className="premium-card py-24 text-center">
-          <AlertCircle size={40} className="text-danger mx-auto mb-4 opacity-40" />
-          <h2 className="text-title text-xl mb-2">Cliente não encontrado</h2>
-          <p className="text-base-400 text-sm mb-6">O registro solicitado pode ter sido removido ou não existe.</p>
-          <button onClick={() => router.push('/')} className="btn-primary">
-            Voltar ao Dashboard
-          </button>
+        <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+          <AlertCircle size={36} style={{ color: '#ef4444', margin: '0 auto 12px', opacity: 0.5 }} />
+          <h2 className="text-title" style={{ fontSize: 18, marginBottom: 6 }}>Cliente não encontrado</h2>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>O registro pode ter sido removido ou não existe.</p>
+          <button onClick={() => router.push('/')} className="btn-primary">Voltar ao Dashboard</button>
         </div>
       )}
     </div>
   )
 }
 
-// ── Helper components ──────────────────────────────────────────────────────
-
-function ContactBadge({ icon, label, value, mono }: { icon: React.ReactNode; label: string; value: string; mono?: boolean }) {
+function ContactInfo({ icon, label, value, mono }: { icon: React.ReactNode; label: string; value: string; mono?: boolean }) {
   return (
-    <div className="space-y-1">
-      <p className="flex items-center gap-2 text-label text-[9px]">
-        <span className="text-accent-400">{icon}</span> {label}
+    <div>
+      <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>
+        <span style={{ color: 'var(--accent)' }}>{icon}</span> {label}
       </p>
-      <p className={clsx("text-[13px] text-white font-medium break-all", mono ? "font-mono" : "font-sans")}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', fontFamily: mono ? 'var(--font-mono)' : 'var(--font-sans)', wordBreak: 'break-all' }}>
         {value}
       </p>
     </div>
   )
 }
 
-function ContractStat({ icon, label, value, isBold }: { icon: React.ReactNode; label: string; value: string; isBold?: boolean }) {
+function DetailCell({ icon, label, value, bold }: { icon: React.ReactNode; label: string; value: string; bold?: boolean }) {
   return (
-    <div className="space-y-1">
-      <span className="flex items-center gap-1.5 text-label text-[8px]">
-        <span className="text-base-400">{icon}</span> {label}
+    <div>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+        {icon} {label}
       </span>
-      <p className={clsx("text-[12px] text-white leading-none", isBold ? "font-bold" : "font-medium")}>
-        {value}
-      </p>
+      <p style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: bold ? 700 : 500 }}>{value}</p>
     </div>
   )
 }
 
-function FinanceRow({ label, value, highlight, bold }: { label: string; value: string; highlight?: boolean; bold?: boolean }) {
+function FinRow({ label, value, bad, bold }: { label: string; value: string; bad?: boolean; bold?: boolean }) {
   return (
-    <div className="flex justify-between items-center text-xs">
-      <span className="text-base-400 text-[11px]">{label}</span>
-      <span className={clsx(
-        "font-mono rounded-md px-2 py-0.5 border",
-        highlight ? "text-danger bg-danger-dim border-danger/10" : "text-ok bg-ok-dim border-ok/10",
-        bold && "font-bold text-[14px]"
-      )}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{label}</span>
+      <span style={{
+        fontFamily: 'var(--font-mono)', fontSize: bold ? 14 : 12,
+        fontWeight: bold ? 700 : 500,
+        color: bad ? '#ef4444' : '#22c55e',
+        padding: '2px 8px', borderRadius: 6,
+        background: bad ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)',
+      }}>
         {value}
       </span>
     </div>
@@ -233,31 +236,29 @@ function FinanceRow({ label, value, highlight, bold }: { label: string; value: s
 
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between items-center text-[10px]">
-      <span className="text-base-400 font-mono">{label}</span>
-      <span className="text-base-200 font-mono">{value}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
+      <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{label}</span>
+      <span style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{value}</span>
     </div>
   )
 }
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="premium-card p-10 space-y-4">
-        <Skeleton className="h-10 w-2/3" />
-        <div className="flex gap-4">
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div className="card" style={{ padding: 28 }}>
+        <Skeleton className="h-8 w-2/3" />
+        <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
           <Skeleton className="h-6 w-32 rounded-full" />
           <Skeleton className="h-6 w-48 rounded-full" />
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-3">
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-32 w-full" />
         </div>
-        <div className="space-y-3">
-          <Skeleton className="h-64 w-full" />
-        </div>
+        <Skeleton className="h-64 w-full" />
       </div>
     </div>
   )

@@ -173,12 +173,14 @@ body {
   border-radius: 0.875rem;
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
 }
 
 .premium-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   border-color: var(--border-default);
+  transform: translateY(-2px);
 }
 
 .glass {
