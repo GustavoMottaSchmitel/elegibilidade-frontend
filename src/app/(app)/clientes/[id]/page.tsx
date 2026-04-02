@@ -74,7 +74,7 @@ export default function ClienteDetalhePage() {
           </div>
 
           {/* Main Grid: Contracts + Financial */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
             {/* Contracts */}
             <div>
               <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -106,7 +106,14 @@ export default function ClienteDetalhePage() {
                             <p style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{c.tipoContrato}</p>
                           </div>
                         </div>
-                        <StatusContratoBadge status={c.statusContrato} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <StatusContratoBadge status={c.statusContrato} />
+                          {c.empresa && (
+                             <span className="badge" style={{ background: 'var(--bg-page)', border: '1px solid var(--border-light)' }}>
+                               {c.empresa === 'ACTIVE' ? 'Active' : 'Ata Sistemas'}
+                             </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Contract Details */}
@@ -140,13 +147,25 @@ export default function ClienteDetalhePage() {
                       padding: 16,
                       borderLeft: `3px solid ${f.possuiDebito ? '#ef4444' : '#22c55e'}`,
                     }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border-light)' }}>
-                        <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Nº {f.numeroContrato || 'N/A'}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border-light)', flexWrap: 'wrap', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                           <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Nº {f.numeroContrato || 'N/A'}</span>
+                           {f.empresa && (
+                             <span className="badge" style={{ fontSize: 10, padding: '2px 6px', background: 'var(--bg-page)', border: '1px solid var(--border-light)' }}>
+                               {f.empresa === 'ACTIVE' ? 'Active' : 'Ata'}
+                             </span>
+                           )}
+                        </div>
                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: f.possuiDebito ? '#ef4444' : '#22c55e' }} className={f.possuiDebito ? 'dot-pulse' : ''} />
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <FinRow label="Status" value={f.possuiDebito ? 'Inadimplente' : 'Regular'} bad={f.possuiDebito} />
+                        <FinRow 
+                          label="Status" 
+                          value={f.possuiDebito && f.diasAtraso > 0 ? 'Inadimplente' : f.possuiDebito ? 'Pendente' : 'Regular'} 
+                          bad={f.possuiDebito && f.diasAtraso > 0} 
+                          warning={f.possuiDebito && f.diasAtraso === 0}
+                        />
                         <FinRow label="Em Aberto" value={formatMoeda(f.valorEmAberto)} bad={f.valorEmAberto > 0} bold />
                         <FinRow label="Dias Atraso" value={f.diasAtraso > 0 ? `${f.diasAtraso} dias` : 'Nenhum'} bad={f.diasAtraso > 0} />
                       </div>
@@ -217,16 +236,18 @@ function DetailCell({ icon, label, value, bold }: { icon: React.ReactNode; label
   )
 }
 
-function FinRow({ label, value, bad, bold }: { label: string; value: string; bad?: boolean; bold?: boolean }) {
+function FinRow({ label, value, bad = false, bold = false, warning = false }: { label: string; value: string; bad?: boolean; bold?: boolean; warning?: boolean }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{label}</span>
-      <span style={{
-        fontFamily: 'var(--font-mono)', fontSize: bold ? 14 : 12,
-        fontWeight: bold ? 700 : 500,
-        color: bad ? '#ef4444' : '#22c55e',
-        padding: '2px 8px', borderRadius: 6,
-        background: bad ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)',
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border-light)' }}>
+      <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{label}</span>
+      <span style={{ 
+        fontSize: 13, 
+        fontWeight: bad || warning || bold ? 700 : 500, 
+        color: bad ? '#ef4444' : warning ? '#f59e0b' : 'var(--text-primary)',
+        fontFamily: 'var(--font-mono)',
+        padding: bad || warning ? '2px 8px' : '0',
+        borderRadius: 6,
+        background: bad ? 'rgba(239,68,68,0.08)' : warning ? 'rgba(245,158,11,0.08)' : 'transparent',
       }}>
         {value}
       </span>
@@ -253,7 +274,7 @@ function LoadingSkeleton() {
           <Skeleton className="h-6 w-48 rounded-full" />
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-32 w-full" />

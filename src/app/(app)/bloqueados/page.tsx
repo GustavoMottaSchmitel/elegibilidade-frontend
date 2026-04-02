@@ -64,7 +64,7 @@ export default function BloqueadosPage() {
         ) : (
           <>
             {/* Summary Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
               <MiniStat label="Total Bloqueados" value={data.totalElements} color="#ef4444" icon={<TrendingDown size={16} />} />
               <MiniStat label="Nesta Página" value={data.content.length} color="var(--text-primary)" icon={<Hash size={16} />} />
               <MiniStat label="Páginas" value={data.totalPages} color="var(--accent)" icon={<ShieldX size={16} />} />

@@ -1,5 +1,7 @@
 // ── Enums ──────────────────────────────────────────────────────────────────
 
+export type EmpresaOrigem = 'ACTIVE' | 'ATA_SISTEMAS'
+
 export type StatusAtendimento =
   | 'PODE_ATENDER'
   | 'ATENDER_COM_RESTRICAO'
@@ -73,6 +75,7 @@ export interface ContratoDetalheDto {
   ativo: boolean
   valorMensal?: number
   observacao?: string
+  empresa?: EmpresaOrigem
 }
 
 export interface FinanceiroDetalheDto {
@@ -83,6 +86,7 @@ export interface FinanceiroDetalheDto {
   diasAtraso: number
   dataUltimoPagamento?: string
   atualizadoEm: string
+  empresa?: EmpresaOrigem
 }
 
 export interface ClienteDetalheResponse {
@@ -98,6 +102,7 @@ export interface ClienteDetalheResponse {
   criadoEm: string
   atualizadoEm: string
   statusAtendimento?: StatusAtendimento
+  motivoStatus?: string
   contratos: ContratoDetalheDto[]
   financeiros: FinanceiroDetalheDto[]
 }
@@ -120,6 +125,7 @@ export interface ImportacaoCsv {
   registrosErro: number
   status: StatusImportacao
   detalhesErro?: string
+  empresa?: EmpresaOrigem
 }
 
 export interface PageResponse<T> {

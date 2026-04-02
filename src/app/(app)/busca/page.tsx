@@ -70,7 +70,7 @@ export default function BuscaPage() {
       {/* Results */}
       <div className="animate-fade-up animate-delay-200">
         {isLoading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
             {[...Array(4)].map((_, i) => (
               <div key={i} className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <Skeleton className="h-5 w-3/4" />
@@ -84,7 +84,7 @@ export default function BuscaPage() {
             <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               {resultados.length} resultado(s)
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
               {resultados.map((cliente) => (
                 <Link
                   key={cliente.id}

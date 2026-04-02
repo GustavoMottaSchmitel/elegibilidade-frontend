@@ -1,23 +1,35 @@
 'use client'
-import { useState, useCallback } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useState, useCallback, useEffect } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { importacaoApi } from '@/lib/api'
 import { useDropzone } from 'react-dropzone'
-import { UploadCloud, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, RefreshCw, X, FileText, Database, Shield } from 'lucide-react'
+import { UploadCloud, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, RefreshCw, X, FileText, Database, Shield, Building2, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
-
-interface ImportResult {
-  message: string
-  totalProcessados: number
-  totalCriados: number
-  totalAtualizados: number
-  errosCount: number
-  erros: string[]
-}
+import type { ImportacaoCsv, EmpresaOrigem } from '@/types/api'
 
 export default function ImportacaoPage() {
   const [file, setFile] = useState<File | null>(null)
-  const [results, setResults] = useState<ImportResult | null>(null)
+  const [empresa, setEmpresa] = useState<EmpresaOrigem | ''>('')
+  const [results, setResults] = useState<ImportacaoCsv | null>(null)
+  
+  const queryClient = useQueryClient()
+
+  // Verifica se existem contratos na base (para bloquear financeiro se necessário)
+  const { data: contratosCheck } = useQuery({
+    queryKey: ['tem-contratos'],
+    queryFn: importacaoApi.temContratos,
+  })
+
+  useEffect(() => {
+    // Tenta detectar o tipo de arquivo pelo nome (heurística simples só pro UI)
+    if (file) {
+      const nome = file.name.toLowerCase()
+      const isFinanceiro = nome.includes('fin') || nome.includes('receb')
+      if (isFinanceiro && contratosCheck && !contratosCheck.temContratos) {
+        toast.error('Atenção: É necessário importar os Contratos antes do Financeiro!')
+      }
+    }
+  }, [file, contratosCheck])
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFile(acceptedFiles[0])
@@ -28,12 +40,14 @@ export default function ImportacaoPage() {
     onDrop,
     accept: { 'text/csv': ['.csv'] },
     multiple: false,
+    disabled: !empresa // desabilita drag & drop se não escolheu empresa
   })
 
-  const mutation = useMutation({
-    mutationFn: (f: File) => importacaoApi.importarCsv(f),
+  const importMutation = useMutation({
+    mutationFn: (f: File) => importacaoApi.importarCsv(f, empresa),
     onSuccess: (data) => {
-      setResults(data as ImportResult)
+      setResults(data as ImportacaoCsv)
+      queryClient.invalidateQueries({ queryKey: ['tem-contratos'] })
       toast.success('Processamento concluído!')
     },
     onError: (error: any) => {
@@ -41,15 +55,53 @@ export default function ImportacaoPage() {
     },
   })
 
+  const clearMutation = useMutation({
+    mutationFn: (emp: EmpresaOrigem) => importacaoApi.limparDados(emp),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tem-contratos'] })
+      toast.success(`Base da empresa ${variables} limpa com sucesso.`)
+      handleReset()
+    },
+    onError: (error: any) => {
+      toast.error('Erro ao limpar base: ' + error.message)
+    },
+  })
+
   const handleImport = () => {
-    if (!file) return
-    mutation.mutate(file)
+    if (!empresa) {
+      toast.error('Selecione a empresa de origem.')
+      return
+    }
+    if (!file) {
+      toast.error('Selecione um arquivo.')
+      return
+    }
+    const nome = file.name.toLowerCase()
+    const isFinanceiro = nome.includes('fin') || nome.includes('receb') || nome.includes('titulo')
+    if (isFinanceiro && contratosCheck && !contratosCheck.temContratos) {
+      toast.error('Importe o arquivo de Contratos primeiro!')
+      return
+    }
+    importMutation.mutate(file)
+  }
+
+  const handleClear = () => {
+    if (!empresa) {
+      toast.error('Selecione uma empresa para limpar a base.')
+      return
+    }
+    if (window.confirm(`Tem certeza que deseja apagar TODOS os clientes, contratos e financeiros atrelados à empresa ${empresa}? Isso não pode ser desfeito.`)) {
+      clearMutation.mutate(empresa)
+    }
   }
 
   const handleReset = () => {
     setFile(null)
     setResults(null)
   }
+
+  // Parses os erros que vêm como string separada por quebras de linha
+  const errorLines = results?.detalhesErro ? results.detalhesErro.split('\n') : []
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', paddingBottom: 60 }}>
@@ -61,15 +113,62 @@ export default function ImportacaoPage() {
         </p>
       </div>
 
-      {/* Info cards */}
-      <div className="animate-fade-up animate-delay-100" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
-        <InfoCard icon={<FileText size={18} />} title="Formato" desc="Arquivos .CSV compatíveis com o sistema de faturamento" />
-        <InfoCard icon={<Database size={18} />} title="Processamento" desc="Novos clientes serão criados, existentes atualizados" />
+      {/* Info cards - Responsivo */}
+      <div className="animate-fade-up animate-delay-100" style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+        gap: 12, 
+        marginBottom: 24 
+      }}>
+        <InfoCard icon={<FileText size={18} />} title="Ordem Correta" desc="Suba PRIMEIRO Contratos, e SÓ DEPOIS o Financeiro" />
+        <InfoCard icon={<Building2 size={18} />} title="Empresas" desc="Os dados são separados por empresa (Active ou Ata Sistemas)" />
         <InfoCard icon={<Shield size={18} />} title="Validação" desc="Registros inválidos são reportados sem afetar os demais" />
       </div>
 
+      <div className="card animate-fade-up animate-delay-200" style={{ padding: '24px 32px', marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ flex: 1, minWidth: 250 }}>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
+              1. De qual empresa são esses dados? <span style={{ color: '#ef4444' }}>*</span>
+            </label>
+            <select 
+              value={empresa} 
+              onChange={(e) => setEmpresa(e.target.value as EmpresaOrigem | '')}
+              className="input-field"
+              style={{ width: '100%', maxWidth: 350, padding: 12 }}
+              disabled={importMutation.isPending || !!results}
+            >
+              <option value="" disabled>-- Selecione a empresa --</option>
+              <option value="ACTIVE">Active</option>
+              <option value="ATA_SISTEMAS">Ata Sistemas</option>
+            </select>
+          </div>
+          
+          <div style={{ flexShrink: 0 }}>
+            <button 
+              onClick={handleClear}
+              disabled={!empresa || clearMutation.isPending || importMutation.isPending}
+              className="btn-ghost"
+              style={{ padding: '8px 16px', color: '#ef4444', fontSize: 13, border: '1px solid rgba(239,68,68,0.2)' }}
+            >
+              {clearMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+              Zerar Base da Empresa
+            </button>
+          </div>
+        </div>
+        {!empresa && (
+          <p style={{ fontSize: 13, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <AlertCircle size={14} /> Você precisa selecionar a empresa antes de importar o arquivo.
+          </p>
+        )}
+      </div>
+
       {!results ? (
-        <div className="card animate-fade-up animate-delay-200" style={{ padding: 32 }}>
+        <div className="card animate-fade-up animate-delay-300" style={{ padding: 32, opacity: empresa ? 1 : 0.5, pointerEvents: empresa ? 'auto' : 'none', transition: 'all 0.3s' }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16 }}>
+            2. Selecione o arquivo CSV: <span style={{ color: '#ef4444' }}>*</span>
+          </label>
+          
           {/* Dropzone */}
           <div
             {...getRootProps()}
@@ -78,7 +177,7 @@ export default function ImportacaoPage() {
               borderRadius: 16,
               padding: '48px 24px',
               textAlign: 'center',
-              cursor: 'pointer',
+              cursor: empresa ? 'pointer' : 'not-allowed',
               background: isDragActive ? 'var(--accent-light)' : 'var(--bg-elevated)',
               transition: 'all 0.2s ease',
             }}
@@ -107,7 +206,7 @@ export default function ImportacaoPage() {
                 <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
                   {isDragActive ? 'Solte para selecionar' : 'Arraste ou clique para selecionar'}
                 </p>
-                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Formato aceito: .CSV (padrão sistema de faturamento)</p>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Mande o CSV de Contratos. Depois mande o Financeiro.</p>
               </>
             )}
           </div>
@@ -116,14 +215,14 @@ export default function ImportacaoPage() {
           <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
             <button
               onClick={handleImport}
-              disabled={!file || mutation.isPending}
+              disabled={!file || !empresa || importMutation.isPending}
               className="btn-primary"
               style={{ flex: 1, height: 48, fontSize: 14 }}
             >
-              {mutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
-              {mutation.isPending ? 'Processando...' : 'Iniciar Processamento'}
+              {importMutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+              {importMutation.isPending ? 'Processando...' : 'Iniciar Processamento'}
             </button>
-            {file && !mutation.isPending && (
+            {file && !importMutation.isPending && (
               <button onClick={handleReset} className="btn-ghost" style={{ width: 48, height: 48, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={18} />
               </button>
@@ -135,19 +234,19 @@ export default function ImportacaoPage() {
           {/* Result Header */}
           <div className="card" style={{
             padding: 24,
-            borderLeft: `4px solid ${results.errosCount > 0 ? '#f59e0b' : '#22c55e'}`,
+            borderLeft: `4px solid ${results.registrosErro > 0 ? '#f59e0b' : '#22c55e'}`,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                {results.errosCount > 0
+                {results.registrosErro > 0
                   ? <AlertCircle size={22} style={{ color: '#f59e0b' }} />
                   : <CheckCircle2 size={22} style={{ color: '#22c55e' }} />
                 }
                 <div>
                   <h3 className="text-title" style={{ fontSize: 18 }}>
-                    {results.errosCount > 0 ? 'Concluída com Alertas' : 'Importação Concluída'}
+                    {results.status === 'CONCLUIDO_COM_ERROS' ? 'Concluída com Alertas' : results.status === 'ERRO' ? 'Falha na Importação' : 'Importação Concluída'}
                   </h3>
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{results.message}</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{file?.name}</p>
                 </div>
               </div>
               <button onClick={handleReset} className="btn-ghost" style={{ fontSize: 13, flexShrink: 0 }}>
@@ -156,22 +255,21 @@ export default function ImportacaoPage() {
             </div>
           </div>
 
-          {/* Stats Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-            <ResultStat label="Processados" value={results.totalProcessados} />
-            <ResultStat label="Novos" value={results.totalCriados} color="#22c55e" />
-            <ResultStat label="Atualizados" value={results.totalAtualizados} color="#3b82f6" />
-            <ResultStat label="Com Erro" value={results.errosCount} color={results.errosCount > 0 ? '#ef4444' : undefined} />
+          {/* Stats Grid - Responsivo */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12 }}>
+            <ResultStat label="Registros Líquidos" value={results.totalRegistros} />
+            <ResultStat label="Importados/Atualizados" value={results.registrosSucesso} color="#3b82f6" />
+            <ResultStat label="Com Erro" value={results.registrosErro} color={results.registrosErro > 0 ? '#ef4444' : undefined} />
           </div>
 
           {/* Error Details */}
-          {results.errosCount > 0 && (
+          {errorLines.length > 0 && (
             <div className="card" style={{ padding: 20, background: 'rgba(239,68,68,0.04)', borderColor: 'rgba(239,68,68,0.15)' }}>
               <h4 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: '#ef4444', marginBottom: 12 }}>
-                <AlertCircle size={16} /> Relatório de Falhas
+                <AlertCircle size={16} /> Relatório de Falhas ({results.registrosErro})
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 240, overflowY: 'auto' }}>
-                {results.erros.map((err, i) => (
+                {errorLines.map((err, i) => err.trim() ? (
                   <div key={i} style={{
                     padding: '8px 12px', borderRadius: 8,
                     background: 'var(--bg-card)', border: '1px solid var(--border-light)',
@@ -179,7 +277,7 @@ export default function ImportacaoPage() {
                   }}>
                     {err}
                   </div>
-                ))}
+                ) : null)}
               </div>
             </div>
           )}

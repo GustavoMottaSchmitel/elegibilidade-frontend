@@ -97,10 +97,12 @@ export const dashboardApi = {
 // ── Importação ────────────────────────────────────────────────────────────
 
 export const importacaoApi = {
-  importarCsv: async (arquivo: File): Promise<any> => {
+  importarCsv: async (arquivo: File, empresa: string): Promise<any> => {
     const form = new FormData()
     form.append('arquivo', arquivo)
-    const { data } = await api.post('/clientes/importar', form, {
+    form.append('empresa', empresa)
+    // Atualizado para a nova rota correta em ImportacaoController
+    const { data } = await api.post('/importacoes/upload', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     return data
@@ -113,6 +115,16 @@ export const importacaoApi = {
 
   detalhe: async (id: number): Promise<ImportacaoCsv> => {
     const { data } = await api.get(`/importacoes/${id}`)
+    return data
+  },
+
+  limparDados: async (empresa: string): Promise<any> => {
+    const { data } = await api.delete(`/importacoes/empresa/${empresa}`)
+    return data
+  },
+
+  temContratos: async (): Promise<{ temContratos: boolean }> => {
+    const { data } = await api.get('/importacoes/tem-contratos')
     return data
   },
 }

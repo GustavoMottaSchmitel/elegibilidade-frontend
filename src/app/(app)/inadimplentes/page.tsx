@@ -64,7 +64,7 @@ export default function InadimplentesPage() {
         ) : (
           <>
             {/* Summary Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
               <MiniStat label="Total Inadimplentes" value={data.totalElements} color="#f59e0b" icon={<TrendingDown size={16} />} />
               <MiniStat label="Nesta Página" value={data.content.length} color="var(--text-primary)" icon={<Hash size={16} />} />
               <MiniStat label="Páginas" value={data.totalPages} color="var(--accent)" icon={<AlertCircle size={16} />} />
