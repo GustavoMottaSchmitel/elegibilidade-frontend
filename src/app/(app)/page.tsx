@@ -4,7 +4,7 @@ import { dashboardApi } from '@/lib/api'
 import { Skeleton } from '@/components/ui'
 import {
   Users, AlertCircle, ShieldX, CalendarClock, FileCheck, Ban,
-  TrendingUp, TrendingDown, Upload, ArrowRight,
+  TrendingUp, TrendingDown, Upload, ArrowRight, UserCheck,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -83,12 +83,20 @@ export default function DashboardPage() {
     refetchInterval: 60000,
   })
 
-  // Calc percentages
-  const total = data?.totalClientesAtivos || 1
-  const pInad = data ? (data.totalInadimplentes / total) * 100 : 0
-  const pBloq = data ? (data.totalBloqueados / total) * 100 : 0
-  const pCanc = data ? (data.totalCancelados / total) * 100 : 0
-  const pOk = Math.max(0, 100 - pInad - pBloq)
+  // Use totalClientes (todos na base) como denominador para percentuais
+  const totalBase = data?.totalClientes || 1
+  const ativos = data?.totalClientesAtivos || 0
+  const inad = data?.totalInadimplentes || 0
+  const bloq = data?.totalBloqueados || 0
+  const canc = data?.totalCancelados || 0
+
+  // Percentuais baseados no total da base
+  const pAtivos = data ? (ativos / totalBase) * 100 : 0
+  const pInad = data ? (inad / totalBase) * 100 : 0
+  const pBloq = data ? (bloq / totalBase) * 100 : 0
+  const pCanc = data ? (canc / totalBase) * 100 : 0
+  // Regulares = ativos sem problemas (ativos – inadimplentes – bloqueados)
+  const pOk = Math.max(0, pAtivos - pInad - pBloq)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -115,13 +123,20 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Metric Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+      {/* Metric Cards — 7 cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
         <MetricCard
           label="Total Clientes"
-          value={data?.totalClientesAtivos}
+          value={data?.totalClientes}
           icon={<Users size={16} />}
-          trend={{ value: `${pOk.toFixed(1)}%`, up: true }}
+          delay="animate-delay-100"
+          href="/busca"
+        />
+        <MetricCard
+          label="Clientes Ativos"
+          value={data?.totalClientesAtivos}
+          icon={<UserCheck size={16} />}
+          trend={{ value: `${pAtivos.toFixed(1)}%`, up: true }}
           delay="animate-delay-100"
           href="/busca"
         />
@@ -137,6 +152,7 @@ export default function DashboardPage() {
           label="Bloqueados"
           value={data?.totalBloqueados}
           icon={<ShieldX size={16} />}
+          trend={{ value: `${pBloq.toFixed(1)}%`, up: false }}
           delay="animate-delay-200"
           href="/bloqueados"
         />
@@ -144,7 +160,7 @@ export default function DashboardPage() {
           label="Cancelados"
           value={data?.totalCancelados}
           icon={<Ban size={16} />}
-          trend={{ value: `${pCanc.toFixed(0)}`, up: false }}
+          trend={{ value: `${pCanc.toFixed(1)}%`, up: false }}
           delay="animate-delay-200"
           href="/cancelados"
         />
@@ -168,11 +184,11 @@ export default function DashboardPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
         {/* Health Card */}
         <div className="card animate-fade-up animate-delay-300" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 8 }}>
             <h3 className="text-title" style={{ fontSize: 16 }}>Saúde da Base</h3>
-            <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               <Legend color="#22c55e" label="Regulares" />
-              <Legend color="#f59e0b" label="Em atraso" />
+              <Legend color="#f59e0b" label="Inadimplentes" />
               <Legend color="#ef4444" label="Bloqueados" />
               <Legend color="#a855f7" label="Cancelados" />
             </div>
@@ -180,7 +196,7 @@ export default function DashboardPage() {
 
           {data && !isLoading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {/* Progress bar */}
+              {/* Progress bar — baseada no total da base */}
               <div style={{ height: 10, width: '100%', borderRadius: 999, overflow: 'hidden', display: 'flex', background: 'var(--bg-elevated)' }}>
                 <div style={{ width: `${pOk}%`, height: '100%', background: '#22c55e', transition: 'width 1s', borderRadius: '999px 0 0 999px' }} />
                 <div style={{ width: `${pInad}%`, height: '100%', background: '#f59e0b', transition: 'width 1s' }} />
@@ -199,7 +215,8 @@ export default function DashboardPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <Skeleton className="h-3 w-full rounded-full" />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+                <Skeleton className="h-20 rounded-xl" />
                 <Skeleton className="h-20 rounded-xl" />
                 <Skeleton className="h-20 rounded-xl" />
                 <Skeleton className="h-20 rounded-xl" />

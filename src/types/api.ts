@@ -110,6 +110,7 @@ export interface ClienteDetalheResponse {
 }
 
 export interface DashboardResponse {
+  totalClientes: number
   totalClientesAtivos: number
   totalInadimplentes: number
   totalBloqueados: number
