@@ -45,7 +45,7 @@ function MetricCard({ label, value, icon, color, delay }: MetricProps) {
         {value == null ? (
           <Skeleton className="h-9 w-24" />
         ) : (
-          <p className="text-3xl font-bold tracking-tighter text-white animate-count-up font-mono">
+          <p className="text-3xl font-bold tracking-tighter animate-count-up font-mono" style={{ color: 'var(--text-primary)' }}>
             {value.toLocaleString('pt-BR')}
           </p>
         )}
@@ -76,13 +76,13 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 animate-fade-up">
         <div>
           <h1 className="text-title text-3xl mb-1">Visão Geral</h1>
-          <p className="text-base-400 text-sm">
+          <p style={{ color: 'var(--text-muted)' }} className="text-sm">
             Monitoramento de elegibilidade e saúde da base de clientes.
           </p>
         </div>
 
         {dataUpdatedAt > 0 && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-base-800 border border-base-700">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
             <span className="w-2 h-2 rounded-full bg-ok dot-pulse" />
             <span className="text-label text-[9px] lowercase italic">
               {new Date(dataUpdatedAt).toLocaleTimeString('pt-BR')}
@@ -116,7 +116,7 @@ export default function DashboardPage() {
           {data && !isLoading ? (
             <div className="space-y-6">
               {/* Progress Bar */}
-              <div className="h-3 w-full rounded-full overflow-hidden flex bg-base-850">
+              <div className="h-3 w-full rounded-full overflow-hidden flex" style={{ background: 'var(--bg-elevated)' }}>
                 {(() => {
                   const total = data.totalClientesAtivos || 1
                   const pInad = (data.totalInadimplentes / total) * 100
@@ -209,7 +209,7 @@ function Legend({ color, label }: { color: string; label: string }) {
 
 function PercentBox({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
   return (
-    <div className="rounded-xl bg-base-850 p-4 text-center border border-base-750">
+    <div className="rounded-xl p-4 text-center" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
       <div className={clsx('flex items-center justify-center gap-1.5 mb-2', color)}>
         {icon}
         <span className="text-label text-[9px]">{label}</span>
