@@ -25,57 +25,87 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const path = usePathname()
+  const sidebarWidth = collapsed ? 72 : 260
 
   return (
     <>
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 998,
+          }}
+          className="lg:hidden"
           onClick={onMobileClose}
         />
       )}
 
+      {/* Sidebar — sticky on desktop, fixed overlay on mobile */}
       <aside
+        style={{
+          width: sidebarWidth,
+          minWidth: sidebarWidth,
+          height: '100vh',
+          position: 'sticky',
+          top: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          background: 'var(--bg-sidebar)',
+          borderRight: '1px solid var(--border-subtle)',
+          transition: 'width 0.3s ease, min-width 0.3s ease',
+          zIndex: 999,
+          flexShrink: 0,
+          overflow: 'hidden',
+        }}
         className={clsx(
-          'sidebar fixed left-0 top-0 h-full flex flex-col z-50 transition-all duration-300 ease-in-out',
-          collapsed ? 'w-[72px]' : 'w-[260px]',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+          // On mobile: hide by default, show as fixed overlay when open
+          !mobileOpen && 'max-lg:hidden',
+          mobileOpen && 'max-lg:!fixed max-lg:!left-0 max-lg:!top-0'
         )}
       >
         {/* Brand Header with Logo */}
-        <div className={clsx(
-          'flex items-center gap-3 shrink-0 transition-all duration-300',
-          collapsed ? 'px-3 pt-5 pb-4 justify-center' : 'px-5 pt-5 pb-4'
-        )}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: collapsed ? '20px 12px 16px' : '20px 20px 16px',
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            flexShrink: 0,
+          }}
+        >
           <img
             src="/logo-dark.png"
             alt="ATA Sistemas"
-            className={clsx(
-              'object-contain shrink-0 transition-all duration-300',
-              collapsed ? 'w-10 h-10' : 'w-9 h-9'
-            )}
+            style={{
+              width: collapsed ? 40 : 36,
+              height: collapsed ? 40 : 36,
+              objectFit: 'contain',
+              flexShrink: 0,
+              transition: 'all 0.3s',
+            }}
           />
           {!collapsed && (
-            <div className="min-w-0" style={{ opacity: 1 }}>
-              <p className="text-[14px] font-bold text-white leading-tight tracking-tight">Elegibilidade</p>
-              <p className="text-[11px] leading-tight" style={{ color: '#525a78' }}>ATA Sistemas</p>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2, letterSpacing: '-0.02em' }}>Elegibilidade</p>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.2 }}>ATA Sistemas</p>
             </div>
           )}
         </div>
 
         {/* Section Label */}
         {!collapsed && (
-          <div className="px-5 pb-2 pt-2" style={{ opacity: 1 }}>
+          <div style={{ padding: '8px 20px' }}>
             <p className="text-label">Navegação</p>
           </div>
         )}
 
         {/* Navigation */}
-        <nav className={clsx(
-          'flex-1 space-y-1 overflow-y-auto',
-          collapsed ? 'px-2 pt-2' : 'px-3'
-        )}>
+        <nav style={{ flex: 1, padding: collapsed ? '8px 8px' : '0 12px', display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto' }}>
           {nav.map(({ href, label, icon: Icon }) => {
             const active = href === '/' ? path === '/' : path.startsWith(href)
             return (
@@ -93,16 +123,16 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
                 <Icon
                   size={collapsed ? 20 : 17}
                   strokeWidth={active ? 2.4 : 1.8}
-                  className="shrink-0 transition-colors"
-                  style={{ color: active ? '#818cf8' : '#525a78' }}
+                  className="shrink-0"
+                  style={{ color: active ? '#818cf8' : 'var(--text-muted)' }}
                 />
                 {!collapsed && (
-                  <span className="flex-1 truncate">{label}</span>
+                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
                 )}
                 {!collapsed && active && (
                   <span
-                    className="w-1.5 h-1.5 rounded-full shrink-0 dot-pulse"
-                    style={{ background: '#6366f1' }}
+                    className="dot-pulse"
+                    style={{ width: 6, height: 6, borderRadius: '50%', background: '#6366f1', flexShrink: 0 }}
                   />
                 )}
               </Link>
@@ -110,13 +140,27 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
           })}
         </nav>
 
-        {/* Collapse Toggle (desktop) & Close (mobile) */}
-        <div className={clsx('p-3', collapsed && 'px-2')}>
+        {/* Bottom Controls */}
+        <div style={{ padding: 12 }}>
           {/* Mobile close */}
           <button
             onClick={onMobileClose}
-            className="lg:hidden w-full flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all text-xs mb-2"
-            style={{ color: '#525a78' }}
+            className="lg:hidden"
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '10px 0',
+              borderRadius: 12,
+              color: 'var(--text-muted)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 12,
+              marginBottom: 8,
+            }}
           >
             <X size={16} /> Fechar
           </button>
@@ -124,12 +168,27 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
           {/* Desktop toggle */}
           <button
             onClick={onToggle}
-            className="hidden lg:flex w-full items-center justify-center gap-2 py-2.5 rounded-xl transition-all text-xs"
-            style={{ color: '#525a78' }}
+            className="hidden lg:flex"
+            style={{
+              width: '100%',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '10px 0',
+              borderRadius: 12,
+              color: 'var(--text-muted)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 12,
+            }}
           >
             <ChevronLeft
               size={16}
-              className={clsx('transition-transform duration-300', collapsed && 'rotate-180')}
+              style={{
+                transition: 'transform 0.3s',
+                transform: collapsed ? 'rotate(180deg)' : 'none',
+              }}
             />
             {!collapsed && <span>Recolher</span>}
           </button>

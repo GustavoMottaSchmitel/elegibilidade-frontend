@@ -7,7 +7,6 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
-  const [isDesktop, setIsDesktop] = useState(true)
 
   useEffect(() => {
     const savedSidebar = localStorage.getItem('ata_sidebar')
@@ -20,13 +19,6 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     } else {
       document.documentElement.setAttribute('data-theme', 'dark')
     }
-
-    // Detect desktop
-    const mq = window.matchMedia('(min-width: 1024px)')
-    setIsDesktop(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
   }, [])
 
   const handleToggle = () => {
@@ -47,12 +39,9 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     window.location.href = 'https://central-atasistemas.duckdns.org/login'
   }
 
-  // Sidebar width — only apply margin on desktop
-  const marginLeft = isDesktop ? (collapsed ? 72 : 260) : 0
-
   return (
-    <div className="min-h-screen">
-      {/* Sidebar */}
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      {/* Sidebar — uses static flow on desktop, overlay on mobile */}
       <Sidebar
         collapsed={collapsed}
         onToggle={handleToggle}
@@ -60,37 +49,48 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
         onMobileClose={() => setMobileOpen(false)}
       />
 
-      {/* Main Content */}
-      <div
-        className="flex flex-col min-h-screen"
-        style={{
-          marginLeft: marginLeft,
-          transition: 'margin-left 0.3s ease',
-        }}
-      >
+      {/* Main — takes remaining space */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Topbar */}
-        <header className="glass sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 shrink-0" style={{ height: 56 }}>
-          {/* Left: Mobile menu + breadcrumb */}
-          <div className="flex items-center gap-3">
+        <header
+          className="glass"
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 30,
+            height: 56,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 16px',
+            flexShrink: 0,
+          }}
+        >
+          {/* Left */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden p-2 rounded-lg transition-all"
-              style={{ color: 'var(--text-muted)' }}
+              className="lg:hidden"
+              style={{ padding: 8, borderRadius: 8, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <Menu size={20} />
             </button>
-            <span className="text-label hidden sm:block">Sistema de Atendimento</span>
+            <span className="text-label" style={{ display: 'none' }}>Sistema de Atendimento</span>
           </div>
 
-          {/* Right: Theme toggle + API Status + Logout */}
-          <div className="flex items-center gap-2">
+          {/* Right */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg transition-all"
               style={{
+                padding: 8,
+                borderRadius: 8,
                 border: '1px solid var(--border-default)',
                 background: 'var(--bg-elevated)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
               }}
               title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
             >
@@ -102,41 +102,55 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
             {/* API Status */}
             <div
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg"
               style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '6px 12px',
+                borderRadius: 8,
                 background: 'var(--bg-elevated)',
                 border: '1px solid var(--border-default)',
               }}
             >
-              <span className="w-2 h-2 rounded-full dot-pulse" style={{ background: '#34d399' }} />
-              <span className="text-label" style={{ fontSize: '9px' }}>API Online</span>
+              <span className="dot-pulse" style={{ width: 8, height: 8, borderRadius: '50%', background: '#34d399' }} />
+              <span className="text-label" style={{ fontSize: 9 }}>API Online</span>
             </div>
 
-            <div className="h-5 w-px hidden sm:block" style={{ background: 'var(--border-default)' }} />
+            <div style={{ width: 1, height: 20, background: 'var(--border-default)' }} />
 
             {/* Logout */}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-xs"
-              style={{ color: 'var(--text-muted)' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 12px',
+                borderRadius: 8,
+                color: 'var(--text-muted)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 12,
+              }}
               title="Sair do Sistema"
             >
               <LogOut size={16} />
-              <span className="hidden sm:inline font-medium">Sair</span>
+              <span style={{ fontWeight: 500 }}>Sair</span>
             </button>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 px-4 lg:px-8 py-6 lg:py-8">
-          <div className="max-w-6xl mx-auto">
+        <main style={{ flex: 1, padding: '24px 16px' }}>
+          <div style={{ maxWidth: 1152, margin: '0 auto' }}>
             {children}
           </div>
         </main>
 
         {/* Footer */}
-        <footer className="px-4 lg:px-8 py-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 font-mono" style={{ fontSize: '10px', color: 'var(--text-faint)' }}>
+        <footer style={{ padding: '16px', borderTop: '1px solid var(--border-subtle)' }}>
+          <div style={{ maxWidth: 1152, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>
             <span>© 2026 ATA Sistemas · Todos os direitos reservados</span>
             <span style={{ opacity: 0.6 }}>Elegibilidade v2.0</span>
           </div>
