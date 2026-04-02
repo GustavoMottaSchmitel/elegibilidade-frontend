@@ -7,6 +7,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+  const [isDesktop, setIsDesktop] = useState(true)
 
   useEffect(() => {
     const savedSidebar = localStorage.getItem('ata_sidebar')
@@ -19,6 +20,13 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     } else {
       document.documentElement.setAttribute('data-theme', 'dark')
     }
+
+    // Detect desktop
+    const mq = window.matchMedia('(min-width: 1024px)')
+    setIsDesktop(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
   }, [])
 
   const handleToggle = () => {
@@ -39,17 +47,11 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     window.location.href = 'https://central-atasistemas.duckdns.org/login'
   }
 
-  const sidebarWidth = collapsed ? 72 : 260
+  // Sidebar width — only apply margin on desktop
+  const marginLeft = isDesktop ? (collapsed ? 72 : 260) : 0
 
   return (
     <div className="min-h-screen">
-      {/* Dynamic margin for desktop only */}
-      <style>{`
-        @media (min-width: 1024px) {
-          .app-main { margin-left: ${sidebarWidth}px; }
-        }
-      `}</style>
-
       {/* Sidebar */}
       <Sidebar
         collapsed={collapsed}
@@ -58,10 +60,16 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
         onMobileClose={() => setMobileOpen(false)}
       />
 
-      {/* Main Content — margin only applies at lg+ */}
-      <div className="app-main flex flex-col min-h-screen transition-all duration-300">
+      {/* Main Content */}
+      <div
+        className="flex flex-col min-h-screen"
+        style={{
+          marginLeft: marginLeft,
+          transition: 'margin-left 0.3s ease',
+        }}
+      >
         {/* Topbar */}
-        <header className="glass sticky top-0 z-30 h-14 flex items-center justify-between px-4 lg:px-6 shrink-0">
+        <header className="glass sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 shrink-0" style={{ height: 56 }}>
           {/* Left: Mobile menu + breadcrumb */}
           <div className="flex items-center gap-3">
             <button
@@ -75,7 +83,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Right: Theme toggle + API Status + Logout */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -87,8 +95,8 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
               title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
             >
               {theme === 'dark'
-                ? <Sun size={16} style={{ color: '#fbbf24' }} />
-                : <Moon size={16} style={{ color: '#6366f1' }} />
+                ? <Sun size={15} style={{ color: '#fbbf24' }} />
+                : <Moon size={15} style={{ color: '#6366f1' }} />
               }
             </button>
 
