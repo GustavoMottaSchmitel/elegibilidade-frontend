@@ -177,8 +177,8 @@ export default function ClienteDetalhePage() {
 
                       {c.observacao && (
                         <div style={{ padding: '12px 20px' }}>
-                          <p style={{ fontSize: 13, color: 'var(--text-muted)', paddingLeft: 12, borderLeft: '2px solid var(--border-light)', lineHeight: 1.6 }}>
-                            <FormattedBlockText text={c.observacao} />
+                          <p style={{ fontSize: 13, color: 'var(--text-muted)', paddingLeft: 12, borderLeft: '2px solid var(--border-light)', lineHeight: 1.6, fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>
+                            &ldquo;{c.observacao}&rdquo;
                           </p>
                         </div>
                       )}
