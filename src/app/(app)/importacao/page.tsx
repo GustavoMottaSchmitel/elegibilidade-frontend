@@ -262,23 +262,70 @@ export default function ImportacaoPage() {
             <ResultStat label="Com Erro" value={results.registrosErro} color={results.registrosErro > 0 ? '#ef4444' : undefined} />
           </div>
 
-          {/* Error Details */}
+          {/* Error / Warning Details */}
           {errorLines.length > 0 && (
-            <div className="card" style={{ padding: 20, background: 'rgba(239,68,68,0.04)', borderColor: 'rgba(239,68,68,0.15)' }}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: '#ef4444', marginBottom: 12 }}>
-                <AlertCircle size={16} /> Relatório de Falhas ({results.registrosErro})
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 240, overflowY: 'auto' }}>
-                {errorLines.map((err, i) => err.trim() ? (
-                  <div key={i} style={{
-                    padding: '8px 12px', borderRadius: 8,
-                    background: 'var(--bg-card)', border: '1px solid var(--border-light)',
-                    fontFamily: 'var(--font-mono)', fontSize: 11, color: '#ef4444',
-                  }}>
-                    {err}
-                  </div>
-                ) : null)}
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {(() => {
+                // Separate errors from warnings using the section headers from backend
+                const erros: string[] = []
+                const avisos: string[] = []
+                let currentSection: 'erro' | 'aviso' | null = null
+
+                for (const line of errorLines) {
+                  const trimmed = line.trim()
+                  if (!trimmed) continue
+                  if (trimmed.startsWith('=== ERROS')) { currentSection = 'erro'; continue }
+                  if (trimmed.startsWith('=== CLIENTES')) { currentSection = 'aviso'; continue }
+                  if (currentSection === 'aviso') avisos.push(trimmed)
+                  else erros.push(trimmed) // default to error if no section header
+                }
+
+                return (
+                  <>
+                    {erros.length > 0 && (
+                      <div className="card" style={{ padding: 20, background: 'rgba(239,68,68,0.04)', borderLeft: '4px solid #ef4444' }}>
+                        <h4 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: '#ef4444', marginBottom: 12 }}>
+                          <AlertCircle size={16} /> Erros de Processamento ({erros.length})
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 240, overflowY: 'auto' }}>
+                          {erros.map((err, i) => (
+                            <div key={i} style={{
+                              padding: '8px 12px', borderRadius: 8,
+                              background: 'var(--bg-card)', border: '1px solid rgba(239,68,68,0.15)',
+                              fontFamily: 'var(--font-mono)', fontSize: 11, color: '#ef4444',
+                            }}>
+                              {err}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {avisos.length > 0 && (
+                      <div className="card" style={{ padding: 20, background: 'rgba(245,158,11,0.04)', borderLeft: '4px solid #f59e0b' }}>
+                        <h4 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: '#f59e0b', marginBottom: 4 }}>
+                          <AlertCircle size={16} /> Clientes Não Encontrados ({avisos.length})
+                        </h4>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
+                          Esses títulos financeiros foram ignorados porque o cliente não possui contrato cadastrado. Verifique se os contratos foram importados primeiro.
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 300, overflowY: 'auto' }}>
+                          {avisos.map((aviso, i) => (
+                            <div key={i} style={{
+                              padding: '8px 12px', borderRadius: 8,
+                              background: 'var(--bg-card)', border: '1px solid rgba(245,158,11,0.15)',
+                              fontFamily: 'var(--font-mono)', fontSize: 11, color: '#d97706',
+                              lineHeight: 1.5,
+                            }}>
+                              {aviso}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
             </div>
           )}
         </div>
