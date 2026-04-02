@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Search, Upload,
-  AlertOctagon, ShieldBan,
+  AlertOctagon, ShieldBan, Ban,
   ChevronLeft, X, Moon, Sun, LogOut,
 } from 'lucide-react'
 import clsx from 'clsx'
@@ -14,6 +14,7 @@ const nav = [
   { href: '/importacao',    label: 'Importação',    icon: Upload,          section: 'GESTÃO' },
   { href: '/inadimplentes', label: 'Inadimplentes', icon: AlertOctagon,    section: 'GESTÃO' },
   { href: '/bloqueados',    label: 'Bloqueados',    icon: ShieldBan,       section: 'GESTÃO' },
+  { href: '/cancelados',    label: 'Cancelados',    icon: Ban,             section: 'GESTÃO' },
 ]
 
 interface SidebarProps {

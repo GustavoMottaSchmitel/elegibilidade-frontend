@@ -83,6 +83,11 @@ export const clienteApi = {
     const { data } = await api.get('/clientes/bloqueados', { params: { page, size } })
     return data
   },
+
+  cancelados: async (page = 0, size = 20): Promise<PageResponse<ClienteDetalheResponse>> => {
+    const { data } = await api.get('/clientes/cancelados', { params: { page, size } })
+    return data
+  },
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────

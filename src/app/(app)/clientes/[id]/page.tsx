@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { clienteApi } from '@/lib/api'
 import { formatCpfCnpj, formatMoeda, formatData, formatDataHora } from '@/lib/utils'
 import { StatusAtendimentoBadge, StatusContratoBadge, Skeleton } from '@/components/ui'
-import { ArrowLeft, Building2, Phone, Mail, MapPin, FileText, Wallet, Calendar, Clock, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Building2, Phone, Mail, MapPin, FileText, Wallet, Calendar, Clock, AlertCircle, Monitor, Tag, Info } from 'lucide-react'
 
 export default function ClienteDetalhePage() {
   const { id } = useParams<{ id: string }>()
@@ -73,6 +73,28 @@ export default function ClienteDetalhePage() {
             </div>
           </div>
 
+          {/* Eligibility Status Card */}
+          {status && (
+            <div className="card" style={{
+              padding: 20,
+              borderLeft: `4px solid ${
+                status.statusAtendimento === 'PODE_ATENDER' ? '#22c55e' :
+                status.statusAtendimento === 'ATENDER_COM_RESTRICAO' ? '#f59e0b' : '#ef4444'
+              }`,
+              background: 'var(--bg-elevated)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <Info size={16} style={{ color: 'var(--accent)' }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Parecer de Elegibilidade
+                </span>
+              </div>
+              <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.7, fontWeight: 500 }}>
+                {status.motivo}
+              </p>
+            </div>
+          )}
+
           {/* Main Grid: Contracts + Financial */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
             {/* Contracts */}
@@ -89,9 +111,12 @@ export default function ClienteDetalhePage() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {detalhe.contratos.map((c) => (
-                    <div key={c.id} className="card" style={{ padding: 20, transition: 'all 0.2s', borderLeft: '3px solid var(--accent)' }}>
+                    <div key={c.id} className="card" style={{
+                      padding: 0, overflow: 'hidden', transition: 'all 0.2s',
+                      borderLeft: `3px solid ${c.statusContrato === 'ATIVO' ? 'var(--accent)' : c.statusContrato === 'CANCELADO' ? '#a855f7' : '#ef4444'}`,
+                    }}>
                       {/* Contract Header */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '16px 20px', background: 'var(--bg-elevated)' }}>
                         <div style={{ display: 'flex', gap: 12 }}>
                           <div style={{
                             width: 40, height: 40, borderRadius: 10,
@@ -116,17 +141,46 @@ export default function ClienteDetalhePage() {
                         </div>
                       </div>
 
+                      {/* Sistema / Referência — campo destacado */}
+                      {c.referencia && (
+                        <div style={{
+                          padding: '10px 20px',
+                          display: 'flex', alignItems: 'center', gap: 10,
+                          borderBottom: '1px solid var(--border-light)',
+                          background: 'var(--bg-card)',
+                        }}>
+                          <div style={{
+                            width: 28, height: 28, borderRadius: 8,
+                            background: 'rgba(99,102,241,0.1)', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                            color: '#6366f1', flexShrink: 0,
+                          }}>
+                            <Monitor size={14} />
+                          </div>
+                          <div>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                              Sistema / Produto
+                            </span>
+                            <p style={{ fontSize: 13, fontWeight: 600, color: '#6366f1', marginTop: 1 }}>
+                              {c.referencia}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Contract Details */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, padding: '12px 0', borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, padding: '14px 20px', borderBottom: '1px solid var(--border-light)' }}>
                         <DetailCell icon={<Calendar size={12} />} label="Início" value={formatData(c.dataInicio)} />
                         <DetailCell icon={<Clock size={12} />} label="Vencimento" value={formatData(c.dataFim)} bold />
-                        <DetailCell icon={<FileText size={12} />} label="Faturamento" value={formatMoeda(c.valorMensal)} />
+                        <DetailCell icon={<Tag size={12} />} label="Faturamento" value={formatMoeda(c.valorMensal)} />
                       </div>
 
                       {c.observacao && (
-                        <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)', paddingLeft: 12, borderLeft: '2px solid var(--border-light)', lineHeight: 1.6 }}>
-                          <FormattedBlockText text={c.observacao} />
-                        </p>
+                        <div style={{ padding: '12px 20px' }}>
+                          <p style={{ fontSize: 13, color: 'var(--text-muted)', paddingLeft: 12, borderLeft: '2px solid var(--border-light)', lineHeight: 1.6 }}>
+                            <FormattedBlockText text={c.observacao} />
+                          </p>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -286,8 +340,7 @@ function LoadingSkeleton() {
 }
 
 function FormattedBlockText({ text }: { text: string }) {
-  const keywords = ['Ponto Web', 'Ponto Offline', 'Ponto Secullum', 'Secullum', 'Sistema de Ponto', 'Mini Folha', 'Acesso', 'Clube'];
-  // We use regex to split the text. Case-insensitive splitting to retain the original casing from the text.
+  const keywords = ['Ponto Web', 'Ponto Offline', 'Ponto Secullum', 'Secullum', 'Sistema de Ponto', 'Mini Folha', 'Acesso', 'Clube', 'Academia Secullum', 'Suporte Remoto', 'Locação'];
   const regex = new RegExp(`(${keywords.join('|')})`, 'gi');
   const parts = text.split(regex);
 
@@ -295,7 +348,6 @@ function FormattedBlockText({ text }: { text: string }) {
     <>
       <span style={{ fontStyle: 'italic', opacity: 0.7 }}>&ldquo;</span>{' '}
       {parts.map((part, i) => {
-        // Find if this part is an exactly matched keyword
         if (keywords.find(k => k.toLowerCase() === part.toLowerCase())) {
           return (
             <span key={i} style={{

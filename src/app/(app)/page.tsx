@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '@/lib/api'
 import { Skeleton } from '@/components/ui'
 import {
-  Users, AlertCircle, ShieldX, CalendarClock, FileCheck,
+  Users, AlertCircle, ShieldX, CalendarClock, FileCheck, Ban,
   TrendingUp, TrendingDown, Upload, ArrowRight,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -87,6 +87,7 @@ export default function DashboardPage() {
   const total = data?.totalClientesAtivos || 1
   const pInad = data ? (data.totalInadimplentes / total) * 100 : 0
   const pBloq = data ? (data.totalBloqueados / total) * 100 : 0
+  const pCanc = data ? (data.totalCancelados / total) * 100 : 0
   const pOk = Math.max(0, 100 - pInad - pBloq)
 
   return (
@@ -140,6 +141,14 @@ export default function DashboardPage() {
           href="/bloqueados"
         />
         <MetricCard
+          label="Cancelados"
+          value={data?.totalCancelados}
+          icon={<Ban size={16} />}
+          trend={{ value: `${pCanc.toFixed(0)}`, up: false }}
+          delay="animate-delay-200"
+          href="/cancelados"
+        />
+        <MetricCard
           label="Contratos Ativos"
           value={data?.totalContratosAtivos}
           icon={<FileCheck size={16} />}
@@ -165,6 +174,7 @@ export default function DashboardPage() {
               <Legend color="#22c55e" label="Regulares" />
               <Legend color="#f59e0b" label="Em atraso" />
               <Legend color="#ef4444" label="Bloqueados" />
+              <Legend color="#a855f7" label="Cancelados" />
             </div>
           </div>
 
@@ -174,14 +184,16 @@ export default function DashboardPage() {
               <div style={{ height: 10, width: '100%', borderRadius: 999, overflow: 'hidden', display: 'flex', background: 'var(--bg-elevated)' }}>
                 <div style={{ width: `${pOk}%`, height: '100%', background: '#22c55e', transition: 'width 1s', borderRadius: '999px 0 0 999px' }} />
                 <div style={{ width: `${pInad}%`, height: '100%', background: '#f59e0b', transition: 'width 1s' }} />
-                <div style={{ width: `${pBloq}%`, height: '100%', background: '#ef4444', transition: 'width 1s', borderRadius: '0 999px 999px 0' }} />
+                <div style={{ width: `${pBloq}%`, height: '100%', background: '#ef4444', transition: 'width 1s' }} />
+                <div style={{ width: `${pCanc}%`, height: '100%', background: '#a855f7', transition: 'width 1s', borderRadius: '0 999px 999px 0' }} />
               </div>
 
               {/* Stats grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
                 <StatBox label="Regular" value={pOk} color="#22c55e" icon={<TrendingUp size={13} />} />
                 <StatBox label="Inadimplência" value={pInad} color="#f59e0b" icon={<TrendingDown size={13} />} />
                 <StatBox label="Bloqueio" value={pBloq} color="#ef4444" icon={<ShieldX size={13} />} />
+                <StatBox label="Cancelados" value={pCanc} color="#a855f7" icon={<Ban size={13} />} />
               </div>
             </div>
           ) : (

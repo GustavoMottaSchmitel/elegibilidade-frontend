@@ -17,6 +17,7 @@ export type StatusContrato =
   | 'VENCIDO'
   | 'CANCELADO'
   | 'SUSPENSO'
+  | 'BLOQUEADO'
   | 'EM_NEGOCIACAO'
 
 export type StatusImportacao =
@@ -74,6 +75,7 @@ export interface ContratoDetalheDto {
   dataFim?: string
   ativo: boolean
   valorMensal?: number
+  referencia?: string
   observacao?: string
   empresa?: EmpresaOrigem
 }
@@ -111,6 +113,7 @@ export interface DashboardResponse {
   totalClientesAtivos: number
   totalInadimplentes: number
   totalBloqueados: number
+  totalCancelados: number
   contratosVencendo30Dias: number
   totalContratosAtivos: number
   geradoEm: string

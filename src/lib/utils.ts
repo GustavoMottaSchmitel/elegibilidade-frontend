@@ -73,6 +73,7 @@ export const statusContratoLabel: Record<StatusContrato, string> = {
   VENCIDO:        'Vencido',
   CANCELADO:      'Cancelado',
   SUSPENSO:       'Suspenso',
+  BLOQUEADO:      'Bloqueado',
   EM_NEGOCIACAO:  'Em negociação',
 }
 
@@ -81,6 +82,7 @@ export function statusContratoColor(s: StatusContrato) {
     case 'ATIVO':         return 'badge-ok'
     case 'VENCIDO':       return 'badge-danger'
     case 'CANCELADO':     return 'badge-danger'
+    case 'BLOQUEADO':     return 'badge-danger'
     case 'SUSPENSO':      return 'badge-warn'
     case 'EM_NEGOCIACAO': return 'badge-warn'
     default:              return 'badge-muted'
