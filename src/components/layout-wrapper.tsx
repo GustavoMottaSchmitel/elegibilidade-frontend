@@ -36,7 +36,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   const handleLogout = () => {
     document.cookie = 'ata_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
-    window.location.href = 'https://central-atasistemas.duckdns.org/login'
+    window.location.href = 'https://central-atasistemas.duckdns.org/login?logout=1'
   }
 
   return (

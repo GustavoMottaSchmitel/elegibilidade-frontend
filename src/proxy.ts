@@ -4,13 +4,16 @@ import type { NextRequest } from 'next/server'
 export function proxy(request: NextRequest) {
   let token = request.cookies.get('ata_token')?.value
   
-  // Suporte a SSO via ?token= na URL (para domínios duckdns diferentes)
   const urlToken = request.nextUrl.searchParams.get('token')
   if (urlToken) {
-    const response = NextResponse.redirect(new URL(request.nextUrl.pathname, request.url))
+    // Redireciona limpando a URL original, usando HTTP 303 para evitar o cache do redirect.
+    const urlWithoutToken = new URL(request.nextUrl.pathname, request.url)
+    const response = NextResponse.redirect(urlWithoutToken, 303)
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+    
+    // Sobrescreve agressivamente o cookie em todos path='/'
     response.cookies.set('ata_token', urlToken, {
       path: '/',
-      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7 // 7 dias
     })
