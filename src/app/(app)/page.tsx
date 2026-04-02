@@ -83,20 +83,20 @@ export default function DashboardPage() {
     refetchInterval: 60000,
   })
 
-  // Use totalClientes (todos na base) como denominador para percentuais
+  // Categorias MUTUAMENTE EXCLUSIVAS: Total = Ativos + Bloqueados + Cancelados + Outros
   const totalBase = data?.totalClientes || 1
   const ativos = data?.totalClientesAtivos || 0
-  const inad = data?.totalInadimplentes || 0
+  const inad = data?.totalInadimplentes || 0  // subconjunto de Ativos (alerta)
   const bloq = data?.totalBloqueados || 0
   const canc = data?.totalCancelados || 0
+  const outros = Math.max(0, (data?.totalClientes || 0) - ativos - bloq - canc)
 
   // Percentuais baseados no total da base
   const pAtivos = data ? (ativos / totalBase) * 100 : 0
-  const pInad = data ? (inad / totalBase) * 100 : 0
+  const pInad = data ? (inad / totalBase) * 100 : 0       // alerta (dentro dos ativos)
   const pBloq = data ? (bloq / totalBase) * 100 : 0
   const pCanc = data ? (canc / totalBase) * 100 : 0
-  // Regulares = ativos sem problemas (ativos – inadimplentes – bloqueados)
-  const pOk = Math.max(0, pAtivos - pInad - pBloq)
+  const pOutros = data ? (outros / totalBase) * 100 : 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -185,30 +185,30 @@ export default function DashboardPage() {
         {/* Health Card */}
         <div className="card animate-fade-up animate-delay-300" style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 8 }}>
-            <h3 className="text-title" style={{ fontSize: 16 }}>Saúde da Base</h3>
+            <h3 className="text-title" style={{ fontSize: 16 }}>Composição da Base</h3>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              <Legend color="#22c55e" label="Regulares" />
-              <Legend color="#f59e0b" label="Inadimplentes" />
+              <Legend color="#22c55e" label="Ativos" />
               <Legend color="#ef4444" label="Bloqueados" />
               <Legend color="#a855f7" label="Cancelados" />
+              {outros > 0 && <Legend color="#6b7280" label="Outros" />}
             </div>
           </div>
 
           {data && !isLoading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {/* Progress bar — baseada no total da base */}
+              {/* Progress bar — categorias mutuamente exclusivas */}
               <div style={{ height: 10, width: '100%', borderRadius: 999, overflow: 'hidden', display: 'flex', background: 'var(--bg-elevated)' }}>
-                <div style={{ width: `${pOk}%`, height: '100%', background: '#22c55e', transition: 'width 1s', borderRadius: '999px 0 0 999px' }} />
-                <div style={{ width: `${pInad}%`, height: '100%', background: '#f59e0b', transition: 'width 1s' }} />
+                <div style={{ width: `${pAtivos}%`, height: '100%', background: '#22c55e', transition: 'width 1s', borderRadius: '999px 0 0 999px' }} />
                 <div style={{ width: `${pBloq}%`, height: '100%', background: '#ef4444', transition: 'width 1s' }} />
-                <div style={{ width: `${pCanc}%`, height: '100%', background: '#a855f7', transition: 'width 1s', borderRadius: '0 999px 999px 0' }} />
+                <div style={{ width: `${pCanc}%`, height: '100%', background: '#a855f7', transition: 'width 1s' }} />
+                {pOutros > 0 && <div style={{ width: `${pOutros}%`, height: '100%', background: '#6b7280', transition: 'width 1s', borderRadius: '0 999px 999px 0' }} />}
               </div>
 
               {/* Stats grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-                <StatBox label="Regular" value={pOk} color="#22c55e" icon={<TrendingUp size={13} />} />
-                <StatBox label="Inadimplência" value={pInad} color="#f59e0b" icon={<TrendingDown size={13} />} />
-                <StatBox label="Bloqueio" value={pBloq} color="#ef4444" icon={<ShieldX size={13} />} />
+                <StatBox label="Ativos" value={pAtivos} color="#22c55e" icon={<TrendingUp size={13} />} />
+                <StatBox label="Inadimplentes" value={pInad} color="#f59e0b" icon={<AlertCircle size={13} />} subtitle="(⚠ alerta >15d)" />
+                <StatBox label="Bloqueados" value={pBloq} color="#ef4444" icon={<ShieldX size={13} />} />
                 <StatBox label="Cancelados" value={pCanc} color="#a855f7" icon={<Ban size={13} />} />
               </div>
             </div>
@@ -269,7 +269,7 @@ function Legend({ color, label }: { color: string; label: string }) {
   )
 }
 
-function StatBox({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
+function StatBox({ label, value, color, icon, subtitle }: { label: string; value: number; color: string; icon: React.ReactNode; subtitle?: string }) {
   return (
     <div style={{
       padding: 16, borderRadius: 12, textAlign: 'center',
@@ -282,6 +282,9 @@ function StatBox({ label, value, color, icon }: { label: string; value: number; 
       <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color }}>
         {value.toFixed(1)}%
       </p>
+      {subtitle && (
+        <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 4, opacity: 0.7 }}>{subtitle}</p>
+      )}
     </div>
   )
 }
