@@ -22,7 +22,7 @@ export function StatusAtendimentoBadge({ status }: { status: StatusAtendimento }
   const c = statusAtendimentoColor(status)
   return (
     <span className={clsx('badge', c.className)}>
-      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: c.dot }} />
+      <span style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: c.dot }} />
       {statusAtendimentoLabel[status]}
     </span>
   )
@@ -52,22 +52,22 @@ export function StatusImportacaoBadge({ status }: { status: StatusImportacao }) 
 
 export function Skeleton({ className }: { className?: string }) {
   return (
-    <div className={clsx(
-      'rounded-lg bg-base-750 animate-pulse',
-      className
-    )} />
+    <div
+      className={clsx('rounded-lg animate-pulse', className)}
+      style={{ background: 'var(--border-light)' }}
+    />
   )
 }
 
 // ── Divider ───────────────────────────────────────────────────────────────
 
 export function Divider({ label }: { label?: string }) {
-  if (!label) return <div className="border-t border-base-700 my-4" />
+  if (!label) return <div style={{ borderTop: '1px solid var(--border-light)', margin: '16px 0' }} />
   return (
-    <div className="flex items-center gap-3 my-4">
-      <div className="flex-1 border-t border-base-700" />
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '16px 0' }}>
+      <div style={{ flex: 1, borderTop: '1px solid var(--border-light)' }} />
       <span className="text-label">{label}</span>
-      <div className="flex-1 border-t border-base-700" />
+      <div style={{ flex: 1, borderTop: '1px solid var(--border-light)' }} />
     </div>
   )
 }

@@ -4,10 +4,9 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { clienteApi } from '@/lib/api'
 import { formatCpfCnpj } from '@/lib/utils'
-import { Search, Building2, UserX, ArrowRight, Loader2, SlidersHorizontal } from 'lucide-react'
+import { Search, Building2, UserX, ArrowRight, Loader2 } from 'lucide-react'
 import { Skeleton, StatusAtendimentoBadge } from '@/components/ui'
 import Link from 'next/link'
-import clsx from 'clsx'
 
 export default function BuscaPage() {
   const searchParams = useSearchParams()
@@ -35,101 +34,103 @@ export default function BuscaPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-20">
+    <div style={{ maxWidth: 900, margin: '0 auto', paddingBottom: 60 }}>
       {/* Header */}
-      <div className="mb-10 text-center animate-fade-up">
-        <h1 className="text-title text-3xl mb-3">Encontrar Clientes</h1>
-        <p className="text-base-400 text-sm max-w-lg mx-auto leading-relaxed">
-          Pesquise por Razão Social, Nome Fantasia, CPF ou CNPJ para consultar a elegibilidade técnica.
+      <div className="animate-fade-up" style={{ marginBottom: 32 }}>
+        <h1 className="text-title" style={{ fontSize: 24, marginBottom: 6 }}>Consulta</h1>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
+          Pesquise por Razão Social, Nome Fantasia, CPF ou CNPJ.
         </p>
       </div>
 
-      {/* Search Box */}
-      <div className="mb-10 animate-fade-up animate-delay-100">
-        <form onSubmit={handleSearch} className="relative group">
-          <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-base-500 group-focus-within:text-accent-400 transition-colors">
-            {isFetching ? <Loader2 size={20} className="animate-spin" /> : <Search size={20} />}
+      {/* Search */}
+      <div className="animate-fade-up animate-delay-100" style={{ marginBottom: 32 }}>
+        <form onSubmit={handleSearch} style={{ position: 'relative' }}>
+          <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+            {isFetching ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
           </div>
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Digite o nome ou documento do cliente..."
-            className="input-search h-14 !pl-14 !pr-32"
+            className="input-search"
+            style={{ paddingLeft: 44, paddingRight: 100, height: 48 }}
           />
           <button
             type="submit"
-            className="btn-primary absolute right-2 top-2 bottom-2 !py-0 !px-5 !rounded-[0.625rem] text-sm"
+            className="btn-primary"
+            style={{ position: 'absolute', right: 6, top: 6, bottom: 6, padding: '0 20px', fontSize: 13, borderRadius: 8 }}
           >
             Buscar
           </button>
         </form>
-
-        {(queryParam || docParam) && (
-          <div className="mt-4 flex items-center justify-center gap-2">
-            <SlidersHorizontal size={12} className="text-base-500" />
-            <span className="text-label text-[9px]">
-              Filtro: {docParam ? 'Documento' : 'Texto livre'}
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Results */}
       <div className="animate-fade-up animate-delay-200">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="premium-card space-y-4">
+              <div key={i} className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
-                <div className="pt-4 border-t border-base-700">
-                  <Skeleton className="h-4 w-1/4" />
-                </div>
+                <Skeleton className="h-4 w-1/4" />
               </div>
             ))}
           </div>
         ) : resultados && resultados.length > 0 ? (
           <>
-            <p className="text-label mb-4">{resultados.length} resultado(s)</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              {resultados.length} resultado(s)
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 12 }}>
               {resultados.map((cliente) => (
                 <Link
                   key={cliente.id}
                   href={`/clientes/${cliente.id}`}
-                  className="premium-card group hover:scale-[1.02] flex flex-col justify-between transition-transform duration-200"
+                  className="card"
+                  style={{ display: 'flex', flexDirection: 'column', padding: 20, textDecoration: 'none', color: 'inherit' }}
                 >
-                  <div>
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-accent-glow flex items-center justify-center text-accent-400">
-                        <Building2 size={20} />
-                      </div>
-                      <StatusAtendimentoBadge status={cliente.statusAtendimento || 'PODE_ATENDER'} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 10,
+                      background: 'var(--accent-light)', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                      color: 'var(--accent-text)',
+                    }}>
+                      <Building2 size={18} />
                     </div>
-
-                    <h3 className="font-bold text-white text-[15px] mb-1 leading-snug group-hover:text-accent-300 transition-colors">
-                      {cliente.razaoSocial}
-                    </h3>
-                    <p className="text-base-400 text-xs font-mono mb-4">
-                      {formatCpfCnpj(cliente.cnpj)}
-                    </p>
+                    <StatusAtendimentoBadge status={cliente.statusAtendimento || 'PODE_ATENDER'} />
                   </div>
 
-                  <div className="pt-4 border-t border-base-700 flex items-center justify-between">
-                    <span className="text-label text-[9px]">Ver Elegibilidade</span>
-                    <ArrowRight size={14} className="text-base-500 group-hover:text-accent-400 group-hover:translate-x-1 transition-all" />
+                  <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+                    {cliente.razaoSocial}
+                  </h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: 16 }}>
+                    {formatCpfCnpj(cliente.cnpj)}
+                  </p>
+
+                  <div style={{ paddingTop: 12, borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Ver Elegibilidade</span>
+                    <ArrowRight size={14} style={{ color: 'var(--text-muted)' }} />
                   </div>
                 </Link>
               ))}
             </div>
           </>
         ) : (queryParam || docParam) ? (
-          <div className="premium-card py-20 text-center">
-            <div className="w-16 h-16 rounded-full bg-base-850 flex items-center justify-center mx-auto mb-4 border border-base-700">
-              <UserX size={32} className="text-base-500" />
+          <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: 'var(--bg-elevated)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 16px', border: '1px solid var(--border-light)',
+            }}>
+              <UserX size={28} style={{ color: 'var(--text-muted)' }} />
             </div>
-            <p className="text-title text-xl mb-2">Nenhum cliente encontrado</p>
-            <p className="text-sm text-base-400 max-w-sm mx-auto">
+            <p className="text-title" style={{ fontSize: 18, marginBottom: 6 }}>Nenhum cliente encontrado</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', maxWidth: 360, margin: '0 auto' }}>
               Tente outro termo de busca ou verifique o documento informado.
             </p>
           </div>

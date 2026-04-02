@@ -4,61 +4,55 @@ import { dashboardApi } from '@/lib/api'
 import { Skeleton } from '@/components/ui'
 import {
   Users, AlertCircle, ShieldX, CalendarClock, FileCheck,
-  ArrowUpRight, TrendingUp, TrendingDown, Upload,
+  TrendingUp, TrendingDown, Upload, ArrowRight,
 } from 'lucide-react'
-import clsx from 'clsx'
 import Link from 'next/link'
 
 interface MetricProps {
   label: string
   value?: number
   icon: React.ReactNode
-  color: 'ok' | 'danger' | 'warn' | 'info' | 'accent'
+  trend?: { value: string; up: boolean }
   delay?: string
 }
 
-const colorConfig = {
-  ok:     { icon: 'text-ok bg-ok-dim',           glow: 'glow-ok',     text: 'text-ok' },
-  danger: { icon: 'text-danger bg-danger-dim',     glow: 'glow-danger', text: 'text-danger' },
-  warn:   { icon: 'text-warn bg-warn-dim',         glow: '',            text: 'text-warn' },
-  info:   { icon: 'text-info bg-info-dim',         glow: '',            text: 'text-info' },
-  accent: { icon: 'text-accent-400 bg-accent-glow', glow: 'glow-accent', text: 'text-accent-400' },
-}
-
-function MetricCard({ label, value, icon, color, delay }: MetricProps) {
-  const c = colorConfig[color]
-
+function MetricCard({ label, value, icon, trend, delay }: MetricProps) {
   return (
-    <div className={clsx(
-      'premium-card group relative overflow-hidden animate-fade-up',
-      delay
-    )}>
-      <div className="flex items-start justify-between mb-5">
-        <div className={clsx('p-2.5 rounded-xl transition-all duration-300 group-hover:scale-110', c.icon)}>
+    <div className={`premium-card animate-fade-up ${delay || ''}`}>
+      {/* Icon + Label */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <div style={{ color: 'var(--text-muted)' }}>
           {icon}
         </div>
-        <ArrowUpRight size={14} className="text-base-500 opacity-0 group-hover:opacity-100 transition-all" />
+        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
+          {label}
+        </span>
       </div>
 
-      <div className="space-y-1.5">
-        <span className="text-label">{label}</span>
+      {/* Value + Trend */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
         {value == null ? (
           <Skeleton className="h-9 w-24" />
         ) : (
-          <p className="text-3xl font-bold tracking-tighter animate-count-up font-mono" style={{ color: 'var(--text-primary)' }}>
+          <p className="animate-count-up" style={{
+            fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em',
+            color: 'var(--text-primary)', fontFamily: 'var(--font-sans)',
+            lineHeight: 1,
+          }}>
             {value.toLocaleString('pt-BR')}
           </p>
         )}
+        {trend && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 3,
+            fontSize: 12, fontWeight: 600,
+            color: trend.up ? '#16a34a' : '#ef4444',
+          }}>
+            {trend.up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
+            {trend.value}
+          </span>
+        )}
       </div>
-
-      {/* Subtle decorative gradient */}
-      <div className={clsx(
-        'absolute -right-6 -bottom-6 w-24 h-24 rounded-full blur-3xl opacity-15 transition-opacity duration-500 group-hover:opacity-25',
-        color === 'ok' ? 'bg-ok' :
-        color === 'danger' ? 'bg-danger' :
-        color === 'warn' ? 'bg-warn' :
-        color === 'info' ? 'bg-info' : 'bg-accent-500'
-      )} />
     </div>
   )
 }
@@ -70,94 +64,106 @@ export default function DashboardPage() {
     refetchInterval: 60000,
   })
 
+  // Calc percentages
+  const total = data?.totalClientesAtivos || 1
+  const pInad = data ? (data.totalInadimplentes / total) * 100 : 0
+  const pBloq = data ? (data.totalBloqueados / total) * 100 : 0
+  const pOk = Math.max(0, 100 - pInad - pBloq)
+
   return (
-    <div className="space-y-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 animate-fade-up">
+      <div className="animate-fade-up" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 className="text-title text-3xl mb-1">Visão Geral</h1>
-          <p style={{ color: 'var(--text-muted)' }} className="text-sm">
+          <h1 className="text-title" style={{ fontSize: 24, marginBottom: 4 }}>Dashboard</h1>
+          <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
             Monitoramento de elegibilidade e saúde da base de clientes.
           </p>
         </div>
 
         {dataUpdatedAt > 0 && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
-            <span className="w-2 h-2 rounded-full bg-ok dot-pulse" />
-            <span className="text-label text-[9px] lowercase italic">
-              {new Date(dataUpdatedAt).toLocaleTimeString('pt-BR')}
-            </span>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '4px 10px', borderRadius: 6,
+            background: 'var(--bg-card)', border: '1px solid var(--border-light)',
+            fontSize: 11, color: 'var(--text-muted)',
+          }}>
+            <span className="dot-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+            {new Date(dataUpdatedAt).toLocaleTimeString('pt-BR')}
           </div>
         )}
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        <MetricCard label="Clientes Ativos"  value={data?.totalClientesAtivos}    icon={<Users size={20}/>}         color="ok"     delay="animate-delay-100" />
-        <MetricCard label="Inadimplentes"    value={data?.totalInadimplentes}      icon={<AlertCircle size={20}/>}   color="warn"   delay="animate-delay-200" />
-        <MetricCard label="Bloqueados"       value={data?.totalBloqueados}         icon={<ShieldX size={20}/>}       color="danger" delay="animate-delay-200" />
-        <MetricCard label="Contratos Ativos" value={data?.totalContratosAtivos}    icon={<FileCheck size={20}/>}     color="accent" delay="animate-delay-300" />
-        <MetricCard label="Vencendo 30d"     value={data?.contratosVencendo30Dias} icon={<CalendarClock size={20}/>} color="info"   delay="animate-delay-300" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+        <MetricCard
+          label="Total Clientes"
+          value={data?.totalClientesAtivos}
+          icon={<Users size={16} />}
+          trend={{ value: `${pOk.toFixed(1)}%`, up: true }}
+          delay="animate-delay-100"
+        />
+        <MetricCard
+          label="Inadimplentes"
+          value={data?.totalInadimplentes}
+          icon={<AlertCircle size={16} />}
+          trend={{ value: `${pInad.toFixed(1)}%`, up: false }}
+          delay="animate-delay-200"
+        />
+        <MetricCard
+          label="Bloqueados"
+          value={data?.totalBloqueados}
+          icon={<ShieldX size={16} />}
+          delay="animate-delay-200"
+        />
+        <MetricCard
+          label="Contratos Ativos"
+          value={data?.totalContratosAtivos}
+          icon={<FileCheck size={16} />}
+          delay="animate-delay-300"
+        />
+        <MetricCard
+          label="Vencendo 30d"
+          value={data?.contratosVencendo30Dias}
+          icon={<CalendarClock size={16} />}
+          delay="animate-delay-300"
+        />
       </div>
 
-      {/* Analysis Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Health Analysis */}
-        <div className="lg:col-span-2 premium-card animate-fade-up animate-delay-300">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-            <h3 className="text-title text-lg">Saúde da Base</h3>
-            <div className="flex gap-4">
-              <Legend color="bg-ok" label="Regulares" />
-              <Legend color="bg-warn" label="Em atraso" />
-              <Legend color="bg-danger" label="Bloqueados" />
+      {/* Second Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+        {/* Health Card */}
+        <div className="card animate-fade-up animate-delay-300" style={{ padding: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <h3 className="text-title" style={{ fontSize: 16 }}>Saúde da Base</h3>
+            <div style={{ display: 'flex', gap: 16 }}>
+              <Legend color="#22c55e" label="Regulares" />
+              <Legend color="#f59e0b" label="Em atraso" />
+              <Legend color="#ef4444" label="Bloqueados" />
             </div>
           </div>
 
           {data && !isLoading ? (
-            <div className="space-y-6">
-              {/* Progress Bar */}
-              <div className="h-3 w-full rounded-full overflow-hidden flex" style={{ background: 'var(--bg-elevated)' }}>
-                {(() => {
-                  const total = data.totalClientesAtivos || 1
-                  const pInad = (data.totalInadimplentes / total) * 100
-                  const pBloq = (data.totalBloqueados / total) * 100
-                  const pOk = Math.max(0, 100 - pInad - pBloq)
-                  return (
-                    <>
-                      <div className="bg-ok h-full transition-all duration-1000 rounded-l-full" style={{ width: `${pOk}%` }} />
-                      <div className="bg-warn h-full transition-all duration-1000" style={{ width: `${pInad}%` }} />
-                      <div className="bg-danger h-full transition-all duration-1000 rounded-r-full" style={{ width: `${pBloq}%` }} />
-                    </>
-                  )
-                })()}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Progress bar */}
+              <div style={{ height: 10, width: '100%', borderRadius: 999, overflow: 'hidden', display: 'flex', background: 'var(--bg-elevated)' }}>
+                <div style={{ width: `${pOk}%`, height: '100%', background: '#22c55e', transition: 'width 1s', borderRadius: '999px 0 0 999px' }} />
+                <div style={{ width: `${pInad}%`, height: '100%', background: '#f59e0b', transition: 'width 1s' }} />
+                <div style={{ width: `${pBloq}%`, height: '100%', background: '#ef4444', transition: 'width 1s', borderRadius: '0 999px 999px 0' }} />
               </div>
 
-              {/* Percentage Grid */}
-              <div className="grid grid-cols-3 gap-4">
-                <PercentBox
-                  label="Regular"
-                  value={(100 - ((data.totalInadimplentes + data.totalBloqueados) / (data.totalClientesAtivos || 1)) * 100)}
-                  color="text-ok"
-                  icon={<TrendingUp size={14} />}
-                />
-                <PercentBox
-                  label="Inadimplência"
-                  value={((data.totalInadimplentes / (data.totalClientesAtivos || 1)) * 100)}
-                  color="text-warn"
-                  icon={<TrendingDown size={14} />}
-                />
-                <PercentBox
-                  label="Bloqueio"
-                  value={((data.totalBloqueados / (data.totalClientesAtivos || 1)) * 100)}
-                  color="text-danger"
-                  icon={<ShieldX size={14} />}
-                />
+              {/* Stats grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                <StatBox label="Regular" value={pOk} color="#22c55e" icon={<TrendingUp size={13} />} />
+                <StatBox label="Inadimplência" value={pInad} color="#f59e0b" icon={<TrendingDown size={13} />} />
+                <StatBox label="Bloqueio" value={pBloq} color="#ef4444" icon={<ShieldX size={13} />} />
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <Skeleton className="h-3 w-full rounded-full" />
-              <div className="grid grid-cols-3 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
                 <Skeleton className="h-20 rounded-xl" />
                 <Skeleton className="h-20 rounded-xl" />
                 <Skeleton className="h-20 rounded-xl" />
@@ -166,30 +172,33 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Quick Action Card */}
-        <Link href="/importacao" className="block animate-fade-up animate-delay-400">
-          <div className="h-full rounded-2xl p-6 relative overflow-hidden gradient-accent glow-accent group cursor-pointer transition-all hover:scale-[1.02]">
-            {/* Pattern overlay */}
-            <div className="absolute inset-0 opacity-10" style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
-              backgroundSize: '20px 20px',
-            }} />
-
-            <div className="relative z-10 h-full flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4 backdrop-blur-sm border border-white/10">
-                  <Upload size={22} className="text-white" />
-                </div>
-                <h3 className="text-title text-white text-lg mb-2">Importação</h3>
-                <p className="text-indigo-200 text-sm leading-relaxed">
-                  Atualize a base de clientes processando os CSVs do sistema de faturamento.
-                </p>
+        {/* Quick Action */}
+        <Link href="/importacao" className="animate-fade-up animate-delay-400" style={{ textDecoration: 'none' }}>
+          <div style={{
+            height: '100%', borderRadius: 14, padding: 24,
+            background: 'linear-gradient(135deg, #16a34a, #22c55e)',
+            color: 'white', display: 'flex', flexDirection: 'column',
+            justifyContent: 'space-between', cursor: 'pointer',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            boxShadow: '0 4px 16px rgba(22,163,74,0.25)',
+          }}>
+            <div>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: 'rgba(255,255,255,0.15)', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+              }}>
+                <Upload size={20} />
               </div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, letterSpacing: '-0.02em' }}>Importação</h3>
+              <p style={{ fontSize: 13, opacity: 0.85, lineHeight: 1.5 }}>
+                Atualize a base de clientes processando CSVs do sistema de faturamento.
+              </p>
+            </div>
 
-              <div className="flex items-center gap-2 mt-6 text-white/80 group-hover:text-white text-sm font-semibold transition-all">
-                <span>Nova Importação</span>
-                <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 20, fontSize: 13, fontWeight: 600, opacity: 0.9 }}>
+              <span>Nova Importação</span>
+              <ArrowRight size={15} />
             </div>
           </div>
         </Link>
@@ -200,21 +209,24 @@ export default function DashboardPage() {
 
 function Legend({ color, label }: { color: string; label: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className={clsx('w-2.5 h-2.5 rounded-full', color)} />
-      <span className="text-label text-[10px]">{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
+      <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>{label}</span>
     </div>
   )
 }
 
-function PercentBox({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
+function StatBox({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
   return (
-    <div className="rounded-xl p-4 text-center" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-      <div className={clsx('flex items-center justify-center gap-1.5 mb-2', color)}>
+    <div style={{
+      padding: 16, borderRadius: 12, textAlign: 'center',
+      background: 'var(--bg-elevated)', border: '1px solid var(--border-light)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 8, color }}>
         {icon}
-        <span className="text-label text-[9px]">{label}</span>
+        <span style={{ fontSize: 10, fontWeight: 500, textTransform: 'uppercase' as const, letterSpacing: '0.06em', color: 'var(--text-muted)' }}>{label}</span>
       </div>
-      <p className={clsx('text-2xl font-bold font-mono tracking-tighter', color)}>
+      <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color }}>
         {value.toFixed(1)}%
       </p>
     </div>
