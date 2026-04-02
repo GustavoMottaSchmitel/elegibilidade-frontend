@@ -135,12 +135,12 @@ export default function ImportacaoPage() {
               value={empresa} 
               onChange={(e) => setEmpresa(e.target.value as EmpresaOrigem | '')}
               className="input-field"
-              style={{ width: '100%', maxWidth: 350, padding: 12 }}
+              style={{ width: '100%', maxWidth: 350, padding: 12, backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-light)' }}
               disabled={importMutation.isPending || !!results}
             >
-              <option value="" disabled>-- Selecione a empresa --</option>
-              <option value="ACTIVE">Active</option>
-              <option value="ATA_SISTEMAS">Ata Sistemas</option>
+              <option value="" disabled style={{ color: 'var(--text-muted)' }}>-- Selecione a empresa --</option>
+              <option value="ACTIVE" style={{ backgroundColor: 'var(--bg-elevated)', padding: '8px' }}>Active</option>
+              <option value="ATA_SISTEMAS" style={{ backgroundColor: 'var(--bg-elevated)', padding: '8px' }}>Ata Sistemas</option>
             </select>
           </div>
           

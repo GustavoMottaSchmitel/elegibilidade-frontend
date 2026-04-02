@@ -14,23 +14,32 @@ interface MetricProps {
   icon: React.ReactNode
   trend?: { value: string; up: boolean }
   delay?: string
+  href?: string
 }
 
-function MetricCard({ label, value, icon, trend, delay }: MetricProps) {
-  return (
-    <div className={`premium-card animate-fade-up ${delay || ''}`}>
+function MetricCard({ label, value, icon, trend, delay, href }: MetricProps) {
+  const content = (
+    <div className={`premium-card animate-fade-up ${delay || ''}`} style={{
+      height: '100%',
+      cursor: href ? 'pointer' : 'default',
+      transition: 'all 0.2s',
+      ...(href ? { minHeight: '100%', display: 'flex', flexDirection: 'column' } : {})
+    }}>
       {/* Icon + Label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
         <div style={{ color: 'var(--text-muted)' }}>
           {icon}
         </div>
-        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0.02em', flex: 1 }}>
           {label}
         </span>
+        {href && (
+           <ArrowRight size={14} style={{ color: 'var(--text-muted)', opacity: 0.5 }} />
+        )}
       </div>
 
       {/* Value + Trend */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 'auto' }}>
         {value == null ? (
           <Skeleton className="h-9 w-24" />
         ) : (
@@ -55,6 +64,16 @@ function MetricCard({ label, value, icon, trend, delay }: MetricProps) {
       </div>
     </div>
   )
+
+  if (href) {
+    return (
+      <Link href={href} style={{ textDecoration: 'none', display: 'block' }}>
+        {content}
+      </Link>
+    )
+  }
+
+  return content;
 }
 
 export default function DashboardPage() {
@@ -103,6 +122,7 @@ export default function DashboardPage() {
           icon={<Users size={16} />}
           trend={{ value: `${pOk.toFixed(1)}%`, up: true }}
           delay="animate-delay-100"
+          href="/busca"
         />
         <MetricCard
           label="Inadimplentes"
@@ -110,24 +130,28 @@ export default function DashboardPage() {
           icon={<AlertCircle size={16} />}
           trend={{ value: `${pInad.toFixed(1)}%`, up: false }}
           delay="animate-delay-200"
+          href="/inadimplentes"
         />
         <MetricCard
           label="Bloqueados"
           value={data?.totalBloqueados}
           icon={<ShieldX size={16} />}
           delay="animate-delay-200"
+          href="/bloqueados"
         />
         <MetricCard
           label="Contratos Ativos"
           value={data?.totalContratosAtivos}
           icon={<FileCheck size={16} />}
           delay="animate-delay-300"
+          href="/busca"
         />
         <MetricCard
           label="Vencendo 30d"
           value={data?.contratosVencendo30Dias}
           icon={<CalendarClock size={16} />}
           delay="animate-delay-300"
+          href="/busca"
         />
       </div>
 

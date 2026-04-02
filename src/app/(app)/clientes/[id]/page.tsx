@@ -124,8 +124,8 @@ export default function ClienteDetalhePage() {
                       </div>
 
                       {c.observacao && (
-                        <p style={{ marginTop: 12, fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic', paddingLeft: 12, borderLeft: '2px solid var(--border-light)', lineHeight: 1.6 }}>
-                          &ldquo;{c.observacao}&rdquo;
+                        <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)', paddingLeft: 12, borderLeft: '2px solid var(--border-light)', lineHeight: 1.6 }}>
+                          <FormattedBlockText text={c.observacao} />
                         </p>
                       )}
                     </div>
@@ -282,5 +282,42 @@ function LoadingSkeleton() {
         <Skeleton className="h-64 w-full" />
       </div>
     </div>
+  )
+}
+
+function FormattedBlockText({ text }: { text: string }) {
+  const keywords = ['Ponto Web', 'Ponto Offline', 'Ponto Secullum', 'Secullum', 'Sistema de Ponto', 'Mini Folha', 'Acesso', 'Clube'];
+  // We use regex to split the text. Case-insensitive splitting to retain the original casing from the text.
+  const regex = new RegExp(`(${keywords.join('|')})`, 'gi');
+  const parts = text.split(regex);
+
+  return (
+    <>
+      <span style={{ fontStyle: 'italic', opacity: 0.7 }}>&ldquo;</span>{' '}
+      {parts.map((part, i) => {
+        // Find if this part is an exactly matched keyword
+        if (keywords.find(k => k.toLowerCase() === part.toLowerCase())) {
+          return (
+            <span key={i} style={{
+              background: 'var(--accent)',
+              color: 'var(--bg-card)',
+              fontSize: 11,
+              padding: '2px 8px',
+              borderRadius: 6,
+              fontWeight: 700,
+              display: 'inline-block',
+              margin: '0 2px',
+              fontStyle: 'normal',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em'
+            }}>
+              {part}
+            </span>
+          )
+        }
+        return <span key={i} style={{ fontStyle: 'italic' }}>{part}</span>
+      })}
+      {' '}<span style={{ fontStyle: 'italic', opacity: 0.7 }}>&rdquo;</span>
+    </>
   )
 }
