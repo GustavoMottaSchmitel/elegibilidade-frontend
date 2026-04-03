@@ -83,20 +83,21 @@ export default function DashboardPage() {
     refetchInterval: 60000,
   })
 
-  // Categorias MUTUAMENTE EXCLUSIVAS: Total = Ativos + Bloqueados + Cancelados + Outros
-  const totalBase = data?.totalClientes || 1
-  const ativos = data?.totalClientesAtivos || 0
-  const inad = data?.totalInadimplentes || 0  // subconjunto de Ativos (alerta)
-  const bloq = data?.totalBloqueados || 0
-  const canc = data?.totalCancelados || 0
-  const outros = Math.max(0, (data?.totalClientes || 0) - ativos - bloq - canc)
+  // Contagens de CONTRATOS (batem direto com o CSV)
+  const totalContratos = data?.totalContratos || 1
+  const cAtivos = data?.totalContratosAtivos || 0
+  const cBloq = data?.totalBloqueados || 0
+  const cCanc = data?.totalCancelados || 0
+  const cOutros = Math.max(0, (data?.totalContratos || 0) - cAtivos - cBloq - cCanc)
 
-  // Percentuais baseados no total da base
-  const pAtivos = data ? (ativos / totalBase) * 100 : 0
-  const pInad = data ? (inad / totalBase) * 100 : 0       // alerta (dentro dos ativos)
-  const pBloq = data ? (bloq / totalBase) * 100 : 0
-  const pCanc = data ? (canc / totalBase) * 100 : 0
-  const pOutros = data ? (outros / totalBase) * 100 : 0
+  // Clientes
+  const inad = data?.totalInadimplentes || 0  // alerta: clientes ativos com atraso > 15d
+
+  // Percentuais por CONTRATO (composição real)
+  const pAtivos = data ? (cAtivos / totalContratos) * 100 : 0
+  const pBloq = data ? (cBloq / totalContratos) * 100 : 0
+  const pCanc = data ? (cCanc / totalContratos) * 100 : 0
+  const pOutros = data ? (cOutros / totalContratos) * 100 : 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -144,7 +145,7 @@ export default function DashboardPage() {
           label="Inadimplentes"
           value={data?.totalInadimplentes}
           icon={<AlertCircle size={16} />}
-          trend={{ value: `${pInad.toFixed(1)}%`, up: false }}
+          trend={{ value: `${inad}`, up: false }}
           delay="animate-delay-200"
           href="/inadimplentes"
         />
@@ -190,7 +191,7 @@ export default function DashboardPage() {
               <Legend color="#22c55e" label="Ativos" />
               <Legend color="#ef4444" label="Bloqueados" />
               <Legend color="#a855f7" label="Cancelados" />
-              {outros > 0 && <Legend color="#6b7280" label="Outros" />}
+              {cOutros > 0 && <Legend color="#6b7280" label="Outros" />}
             </div>
           </div>
 
@@ -207,7 +208,7 @@ export default function DashboardPage() {
               {/* Stats grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
                 <StatBox label="Ativos" value={pAtivos} color="#22c55e" icon={<TrendingUp size={13} />} />
-                <StatBox label="Inadimplentes" value={pInad} color="#f59e0b" icon={<AlertCircle size={13} />} subtitle="(⚠ alerta >15d)" />
+                <StatBox label="Inadimplentes" value={data ? (inad / (data.totalClientesAtivos || 1)) * 100 : 0} color="#f59e0b" icon={<AlertCircle size={13} />} subtitle="(⚠ alerta >15d)" />
                 <StatBox label="Bloqueados" value={pBloq} color="#ef4444" icon={<ShieldX size={13} />} />
                 <StatBox label="Cancelados" value={pCanc} color="#a855f7" icon={<Ban size={13} />} />
               </div>

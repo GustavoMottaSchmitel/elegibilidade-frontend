@@ -110,13 +110,16 @@ export interface ClienteDetalheResponse {
 }
 
 export interface DashboardResponse {
+  // Clientes
   totalClientes: number
   totalClientesAtivos: number
   totalInadimplentes: number
+  // Contratos (bate direto com o CSV)
+  totalContratos: number
+  totalContratosAtivos: number
   totalBloqueados: number
   totalCancelados: number
   contratosVencendo30Dias: number
-  totalContratosAtivos: number
   geradoEm: string
 }
 
